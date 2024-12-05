@@ -1,0 +1,149 @@
+package user
+
+import (
+	"errors"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler"
+	"github.com/TrinityKnights/Backend/internal/domain/model"
+	"github.com/TrinityKnights/Backend/internal/service/user"
+	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
+	"net/http"
+)
+
+type UserHandlerImpl struct {
+	Log  *logrus.Logger
+	User user.UserService
+}
+
+func NewUserHandler(log *logrus.Logger, user user.UserService) *UserHandlerImpl {
+	return &UserHandlerImpl{
+		Log:  log,
+		User: user,
+	}
+}
+
+// Register function is a handler to register a new user
+// @Summary Register a new user
+// @Description Register a new user
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body model.RegisterRequest true "User data"
+// @Success 201 {object} model.Response[model.UserResponse]
+// @Failure 400 {object} model.Error
+// @Failure 500 {object} model.Error
+// @Router /users [post]
+func (h *UserHandlerImpl) Register(ctx echo.Context) error {
+	request := new(model.RegisterRequest)
+	if err := ctx.Bind(request); err != nil {
+		h.Log.Errorf("failed to bind request: %v", err)
+		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
+	}
+
+	response, err := h.User.Register(ctx.Request().Context(), request)
+	if err != nil {
+		h.Log.Errorf("failed to register: %v", err)
+		switch {
+		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
+			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, errors.New(http.StatusText(http.StatusConflict))):
+			return handler.HandleError(ctx, 409, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
+
+	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
+}
+
+func (h *UserHandlerImpl) Login(ctx echo.Context) error {
+	request := new(model.LoginRequest)
+	if err := ctx.Bind(request); err != nil {
+		h.Log.Errorf("failed to bind request: %v", err)
+		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
+	}
+
+	response, err := h.User.Login(ctx.Request().Context(), request)
+	if err != nil {
+		h.Log.Errorf("failed to login: %v", err)
+		switch {
+		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
+			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, errors.New(http.StatusText(http.StatusUnauthorized))):
+			return handler.HandleError(ctx, 401, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
+}
+
+func (h *UserHandlerImpl) Profile(ctx echo.Context) error {
+	request := new(model.ProfileRequest)
+	if err := ctx.Bind(request); err != nil {
+		h.Log.Errorf("failed to bind request: %v", err)
+		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
+	}
+
+	response, err := h.User.Profile(ctx.Request().Context(), request)
+	if err != nil {
+		h.Log.Errorf("failed to get profile: %v", err)
+		switch {
+		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
+			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, errors.New(http.StatusText(http.StatusNotFound))):
+			return handler.HandleError(ctx, 404, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
+}
+
+func (h *UserHandlerImpl) Update(ctx echo.Context) error {
+	request := new(model.UpdateRequest)
+	if err := ctx.Bind(request); err != nil {
+		h.Log.Errorf("failed to bind request: %v", err)
+		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
+	}
+
+	response, err := h.User.Update(ctx.Request().Context(), request)
+	if err != nil {
+		h.Log.Errorf("failed to update: %v", err)
+		switch {
+		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
+			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, errors.New(http.StatusText(http.StatusNotFound))):
+			return handler.HandleError(ctx, 404, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
+}
+
+func (h *UserHandlerImpl) RefreshToken(ctx echo.Context) error {
+	request := new(model.RefreshTokenRequest)
+	if err := ctx.Bind(request); err != nil {
+		h.Log.Errorf("failed to bind request: %v", err)
+		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
+	}
+
+	response, err := h.User.RefreshToken(ctx.Request().Context(), request)
+	if err != nil {
+		h.Log.Errorf("failed to refresh token: %v", err)
+		switch {
+		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
+			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, errors.New(http.StatusText(http.StatusUnauthorized))):
+			return handler.HandleError(ctx, 401, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
+
+	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
+}
