@@ -1,1 +1,4 @@
-package app
+package main
+
+func main() {
+}
