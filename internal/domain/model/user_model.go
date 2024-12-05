@@ -1,7 +1,7 @@
 package model
 
 type UserResponse struct {
-	ID        int    `json:"id"`
+	ID        string `json:"id"`
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	Role      string `json:"role"`
@@ -22,14 +22,14 @@ type LoginRequest struct {
 }
 
 type UpdateRequest struct {
-	ID       int    `param:"id" validate:"required"`
+	ID       string `param:"id" validate:"required"`
 	Email    string `json:"email" validate:"omitempty,email,lte=100"`
 	Password string `json:"password" validate:"omitempty,min=8,lte=255"`
 	Name     string `json:"name" validate:"omitempty,lte=100"`
 }
 
 type ProfileRequest struct {
-	ID int `param:"id" validate:"required"`
+	ID string `param:"id" validate:"required"`
 }
 
 type TokenResponse struct {
