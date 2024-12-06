@@ -4,30 +4,21 @@ import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/pkg/route"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	swagger "github.com/swaggo/echo-swagger"
 )
 
+type RouteConfig interface {
+	PublicRoute() []route.Route
+	PrivateRoute() []route.Route
+	SwaggerRoutes()
+}
+
 type Config struct {
-	App            *echo.Echo
-	UserHandler    *user.UserHandlerImpl
-	AuthMiddleware echo.MiddlewareFunc
+	App         *echo.Echo
+	UserHandler *user.UserHandlerImpl
 }
 
-func (c *Config) Setup() {
-	g := c.App.Group("/api/v1")
-	for _, r := range c.publicRoute() {
-		g.Add(r.Method, r.Path, r.Handler)
-	}
-	for _, r := range c.privateRoute() {
-		g.Add(r.Method, r.Path, r.Handler, c.AuthMiddleware)
-	}
-	g.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(60)))
-	c.swaggerRoutes()
-	c.App.Use(middleware.Recover())
-}
-
-func (c *Config) publicRoute() []route.Route {
+func (c *Config) PublicRoute() []route.Route {
 	return []route.Route{
 		{
 			Method:  echo.POST,
@@ -47,7 +38,7 @@ func (c *Config) publicRoute() []route.Route {
 	}
 }
 
-func (c *Config) privateRoute() []route.Route {
+func (c *Config) PrivateRoute() []route.Route {
 	return []route.Route{
 		{
 			Method:  echo.GET,
@@ -62,7 +53,7 @@ func (c *Config) privateRoute() []route.Route {
 	}
 }
 
-func (c *Config) swaggerRoutes() {
+func (c *Config) SwaggerRoutes() {
 	c.App.GET("/swagger/*", swagger.WrapHandler)
 
 	c.App.GET("/", func(ctx echo.Context) error {

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/TrinityKnights/Backend/internal/builder"
 	handlerUser "github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/middleware"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
@@ -42,12 +43,19 @@ func Bootstrap(config *BootstrapConfig) error {
 	authMiddleware := middleware.AuthMiddleware(jwtService)
 
 	// Initialize route
-	routeConfig := &route.Config{
+	routeConfig := route.Config{
+		App:         config.App,
+		UserHandler: userHandler,
+	}
+
+	// Build routes
+	b := builder.Config{
 		App:            config.App,
 		UserHandler:    userHandler,
 		AuthMiddleware: authMiddleware,
+		Routes:         &routeConfig,
 	}
-	routeConfig.Setup()
+	b.BuildRoutes()
 
 	config.Log.Infof("Application is ready")
 	return nil
