@@ -56,6 +56,18 @@ func (h *UserHandlerImpl) Register(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
 }
 
+// Login function is a handler to login user
+// @Summary Login user
+// @Description Login user
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body model.LoginRequest true "User data"
+// @Success 200 {object} model.Response[model.TokenResponse]
+// @Failure 400 {object} model.Error
+// @Failure 401 {object} model.Error
+// @Failure 500 {object} model.Error
+// @Router /users/login [post]
 func (h *UserHandlerImpl) Login(ctx echo.Context) error {
 	request := new(model.LoginRequest)
 	if err := ctx.Bind(request); err != nil {
@@ -79,6 +91,19 @@ func (h *UserHandlerImpl) Login(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
+// Profile function is a handler to get user profile
+// @Summary Get user profile
+// @Description Get user profile
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param id query string true "User ID"
+// @Success 200 {object} model.Response[model.UserResponse]
+// @Failure 400 {object} model.Error
+// @Failure 404 {object} model.Error
+// @Failure 500 {object} model.Error
+// @security ApiKeyAuth
+// @Router /users [get]
 func (h *UserHandlerImpl) Profile(ctx echo.Context) error {
 	request := new(model.ProfileRequest)
 	if err := ctx.Bind(request); err != nil {
@@ -102,6 +127,19 @@ func (h *UserHandlerImpl) Profile(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
+// Update function is a handler to update user profile
+// @Summary Update user profile
+// @Description Update user profile
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body model.UpdateRequest true "User data"
+// @Success 200 {object} model.Response[model.UserResponse]
+// @Failure 400 {object} model.Error
+// @Failure 404 {object} model.Error
+// @Failure 500 {object} model.Error
+// @security ApiKeyAuth
+// @Router /users [put]
 func (h *UserHandlerImpl) Update(ctx echo.Context) error {
 	request := new(model.UpdateRequest)
 	if err := ctx.Bind(request); err != nil {

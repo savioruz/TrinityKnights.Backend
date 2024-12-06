@@ -1,0 +1,260 @@
+basePath: /api/v1
+definitions:
+  github_com_TrinityKnights_Backend_internal_domain_model.Error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.LoginRequest:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      password:
+        maxLength: 255
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata:
+    properties:
+      page:
+        type: integer
+      size:
+        type: integer
+      total_items:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.RegisterRequest:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      password:
+        maxLength: 255
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TokenResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.TokenResponse'
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_UserResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UserResponse'
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      id:
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      password:
+        maxLength: 255
+        minLength: 8
+        type: string
+    required:
+    - id
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+      status:
+        type: boolean
+      updated_at:
+        type: string
+    type: object
+info:
+  contact:
+    email: jakueenak@gmail.com
+    name: API Support
+  description: This is an auto-generated API Docs.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Trinity Knights API
+  version: "0.1"
+paths:
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile
+      parameters:
+      - description: User ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user profile
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      summary: Register a new user
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update user profile
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Update user profile
+      tags:
+      - user
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      summary: Login user
+      tags:
+      - user
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
