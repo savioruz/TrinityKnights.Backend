@@ -97,7 +97,6 @@ func (h *UserHandlerImpl) Login(ctx echo.Context) error {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param id query string true "User ID"
 // @Success 200 {object} model.Response[model.UserResponse]
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
@@ -105,13 +104,7 @@ func (h *UserHandlerImpl) Login(ctx echo.Context) error {
 // @security ApiKeyAuth
 // @Router /users [get]
 func (h *UserHandlerImpl) Profile(ctx echo.Context) error {
-	request := new(model.ProfileRequest)
-	if err := ctx.Bind(request); err != nil {
-		h.Log.Errorf("failed to bind request: %v", err)
-		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
-	}
-
-	response, err := h.User.Profile(ctx.Request().Context(), request)
+	response, err := h.User.Profile(ctx.Request().Context())
 	if err != nil {
 		h.Log.Errorf("failed to get profile: %v", err)
 		switch {
@@ -163,6 +156,18 @@ func (h *UserHandlerImpl) Update(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
+// RefreshToken function is a handler to refresh token
+// @Summary Refresh token
+// @Description Refresh token
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body model.RefreshTokenRequest true "User data"
+// @Success 200 {object} model.Response[model.TokenResponse]
+// @Failure 400 {object} model.Error
+// @Failure 401 {object} model.Error
+// @Failure 500 {object} model.Error
+// @Router /users/refresh [post]
 func (h *UserHandlerImpl) RefreshToken(ctx echo.Context) error {
 	request := new(model.RefreshTokenRequest)
 	if err := ctx.Bind(request); err != nil {

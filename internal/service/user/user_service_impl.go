@@ -7,6 +7,7 @@ import (
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
 	"github.com/TrinityKnights/Backend/internal/repository/user"
+	"github.com/TrinityKnights/Backend/pkg/helper"
 	"github.com/TrinityKnights/Backend/pkg/jwt"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -22,6 +23,7 @@ type UserServiceImpl struct {
 	Validate       *validator.Validate
 	UserRepository *user.UserRepositoryImpl
 	JWTService     jwt.JWTService
+	helper         *helper.ContextHelper
 }
 
 func NewUserServiceImpl(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *user.UserRepositoryImpl, jwtService jwt.JWTService) *UserServiceImpl {
@@ -31,6 +33,7 @@ func NewUserServiceImpl(db *gorm.DB, log *logrus.Logger, validate *validator.Val
 		Validate:       validate,
 		UserRepository: userRepository,
 		JWTService:     jwtService,
+		helper:         helper.NewContextHelper(),
 	}
 }
 
@@ -49,7 +52,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	}
 
 	first := &entity.User{}
-	if err := s.UserRepository.GetFirst(tx, first); err != nil {
+	if err := s.UserRepository.GetFirst(tx, first); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.Log.Errorf("failed to get first user: %v", err)
 		return nil, errors.New(http.StatusText(http.StatusInternalServerError))
 	}
@@ -123,16 +126,18 @@ func (s *UserServiceImpl) Login(ctx context.Context, request *model.LoginRequest
 	return converter.LoginToTokenResponse(accessToken, refreshToken), nil
 }
 
-func (s *UserServiceImpl) Profile(ctx context.Context, request *model.ProfileRequest) (*model.UserResponse, error) {
+func (s *UserServiceImpl) Profile(ctx context.Context) (*model.UserResponse, error) {
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	if err := s.Validate.Struct(request); err != nil {
-		return nil, errors.New(http.StatusText(http.StatusBadRequest))
+	claims, err := s.helper.GetJWTClaims(ctx)
+	if err != nil {
+		s.Log.Errorf("failed to get jwt claims: %v", err)
+		return nil, errors.New(http.StatusText(http.StatusUnauthorized))
 	}
 
 	data := &entity.User{}
-	if err := s.UserRepository.GetByID(tx, data, request.ID); err != nil {
+	if err := s.UserRepository.GetByID(tx, data, claims.UserID); err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		s.Log.Errorf("failed to get user by id: %v", err)
 		return nil, errors.New(http.StatusText(http.StatusNotFound))
 	}
@@ -153,8 +158,14 @@ func (s *UserServiceImpl) Update(ctx context.Context, request *model.UpdateReque
 		return nil, errors.New(http.StatusText(http.StatusBadRequest))
 	}
 
+	claims, err := s.helper.GetJWTClaims(ctx)
+	if err != nil {
+		s.Log.Errorf("failed to get jwt claims: %v", err)
+		return nil, errors.New(http.StatusText(http.StatusUnauthorized))
+	}
+
 	data := &entity.User{}
-	if err := s.UserRepository.GetByID(tx, data, request.ID); err != nil {
+	if err := s.UserRepository.GetByID(tx, data, claims.UserID); err != nil {
 		s.Log.Errorf("failed to get user by id: %v", err)
 		return nil, errors.New(http.StatusText(http.StatusNotFound))
 	}

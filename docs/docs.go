@@ -46,8 +46,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "User ID",
                         "name": "id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -228,6 +227,58 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/refresh": {
+            "post": {
+                "description": "Refresh token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Refresh token",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.RefreshTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -274,6 +325,17 @@ const docTemplate = `{
                 },
                 "total_pages": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.RefreshTokenRequest": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
                 }
             }
         },
