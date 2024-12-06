@@ -1,22 +1,40 @@
 package builder
 
 import (
-	"github.com/TrinityKnights/Backend/internal/http/handler"
-	"github.com/TrinityKnights/Backend/internal/http/router"
-	userRepo "github.com/TrinityKnights/Backend/internal/repository/user"
-	userService "github.com/TrinityKnights/Backend/internal/service/user"
-	"github.com/TrinityKnights/Backend/pkg/jwt"
-	"github.com/TrinityKnights/Backend/pkg/route"
-	"github.com/go-playground/validator/v10"
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
+
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-func BuildPublicRoutes(log *logrus.Logger, db *gorm.DB, jwtService jwt.JWTService) []route.Route {
-	validate := validator.New()
-	userRepository := userRepo.NewUserRepository(db, log)
-	userService := userService.NewUserServiceImpl(db, log, validate, userRepository, jwtService)
-	userHandler := handler.NewUserHandler(userService)
+type Config struct {
+	App            *echo.Echo
+	UserHandler    *user.UserHandlerImpl
+	AuthMiddleware echo.MiddlewareFunc
+	Routes         *route.Config
+}
 
-	return router.PublicRoutes(userHandler)
+func (c *Config) BuildRoutes() {
+	// Global middleware
+	c.App.Use(middleware.Recover())
+
+	// API group
+	g := c.App.Group("/api/v1")
+	g.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(60)))
+
+	// Public routes
+	for _, r := range c.Routes.PublicRoute() {
+		g.Add(r.Method, r.Path, r.Handler)
+	}
+
+	// Private routes with auth middleware
+	privateGroup := g.Group("/api/v1", c.AuthMiddleware)
+	for _, r := range c.Routes.PrivateRoute() {
+		privateGroup.Add(r.Method, r.Path, r.Handler)
+	}
+
+	// Swagger routes
+	c.Routes.SwaggerRoutes()
+
 }

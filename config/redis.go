@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	cache "github.com/TrinityKnights/Backend/pkg/redis"
+	cache "github.com/TrinityKnights/Backend/pkg/cache"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
