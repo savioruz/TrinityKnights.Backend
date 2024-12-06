@@ -5,7 +5,7 @@ clean:
 	rm -rf ./build
 
 swag:
-	swag init --parseDependency --parseInternal -g ./cmd/app/main.go
+	swag init --parseDependency --parseInternal --parseDepth=2 -g ./cmd/app/main.go
 
 critic:
 	gocritic check -enableAll ./internal/...
