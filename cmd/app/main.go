@@ -1,58 +1,51 @@
 package main
 
 import (
-	"time"
-
+	"fmt"
 	"github.com/TrinityKnights/Backend/config"
-	"github.com/TrinityKnights/Backend/internal/builder"
-	"github.com/TrinityKnights/Backend/pkg/jwt"
-	"github.com/go-playground/validator/v10"
+	_ "github.com/TrinityKnights/Backend/docs"
+	"time"
 )
 
-type CustomValidator struct {
-	validator *validator.Validate
-}
-
-func (cv *CustomValidator) Validate(i interface{}) error {
-	return cv.validator.Struct(i)
-}
+// @title Trinity Knights API
+// @version 0.1
+// @description This is an auto-generated API Docs.
+// @termsOfService http://swagger.io/terms/
+// @contact.name API Support
+// @contact.email jakueenak@gmail.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @BasePath /api/v1
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
-
 	viper := config.NewViper()
-
-	log := config.NewLogrus()
-
-	jwtService := jwt.NewJWTService(config.NewJWT(viper))
-
+	log := config.NewLogrus(viper)
 	db := config.NewDatabase(viper, log)
+	redis := config.NewRedisClient(viper, log)
+	jwt := config.NewJWT(viper)
+	validate := config.NewValidator()
+	app, log := config.NewEcho()
 
-	redisClient := config.NewRedisClient(viper, log)
-
-	e, log := config.NewEcho()
-	validator := config.NewValidator()
-	e.Validator = &CustomValidator{validator: validator}
-
-	routes := builder.BuildPublicRoutes(log, db, jwtService)
-
-	for _, route := range routes {
-		e.Add(route.Method, route.Path, route.Handler)
+	err := config.Bootstrap(&config.BootstrapConfig{
+		DB:       db,
+		Cache:    redis,
+		App:      app,
+		Log:      log,
+		Validate: validate,
+		JWT:      jwt,
+	})
+	if err != nil {
+		log.Fatalf("Failed to bootstrap application: %v", err)
 	}
 
+	port := viper.GetString("APP_PORT")
 	go func() {
-		if err := e.Start(":8080"); err != nil {
-			log.Fatalf("failed to start server: %v", err)
+		if err := app.Start(fmt.Sprintf(":%s", port)); err != nil {
+			log.Fatal("shutting down the server")
 		}
 	}()
-	log.Println("Server started on port 8080")
 
-	config.GracefulShutdown(e, log, 10*time.Second)
-
-	log.Info("Server is running and connected to Redis")
-	redisClient.Set("exampleKey", "exampleValue", 0)
-	err := redisClient.Get("exampleKey", nil)
-	if err != nil {
-		log.Errorf("Error getting key from Redis: %v", err)
-	} else {
-		log.Info("Successfully got key from Redis")
-	}
+	config.GracefulShutdown(app, log, 10*time.Second)
 }

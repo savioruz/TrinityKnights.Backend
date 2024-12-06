@@ -22,14 +22,9 @@ type LoginRequest struct {
 }
 
 type UpdateRequest struct {
-	ID       string `param:"id" validate:"required"`
 	Email    string `json:"email" validate:"omitempty,email,lte=100"`
 	Password string `json:"password" validate:"omitempty,min=8,lte=255"`
 	Name     string `json:"name" validate:"omitempty,lte=100"`
-}
-
-type ProfileRequest struct {
-	ID string `param:"id" validate:"required"`
 }
 
 type TokenResponse struct {
