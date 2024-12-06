@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/TrinityKnights/Backend/config"
-	_ "github.com/TrinityKnights/Backend/docs"git
+	_ "github.com/TrinityKnights/Backend/docs"
 	"net/http"
 	"time"
 )
