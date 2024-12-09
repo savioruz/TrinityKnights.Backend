@@ -170,19 +170,6 @@ func (s *UserServiceImpl) Update(ctx context.Context, request *model.UpdateReque
 		return nil, errors.New(http.StatusText(http.StatusNotFound))
 	}
 
-	if request.Email != "" {
-		data.Email = request.Email
-	}
-
-	if request.Password != "" {
-		password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
-		if err != nil {
-			s.Log.Errorf("failed to generate password: %v", err)
-			return nil, errors.New(http.StatusText(http.StatusInternalServerError))
-		}
-		data.Password = string(password)
-	}
-
 	if request.Name != "" {
 		data.Name = request.Name
 	}
@@ -198,6 +185,50 @@ func (s *UserServiceImpl) Update(ctx context.Context, request *model.UpdateReque
 	}
 
 	return converter.UserToResponse(data), nil
+}
+
+func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.ResetPasswordRequest) error {
+	tx := s.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	if err := s.Validate.Struct(request); err != nil {
+		return errors.New(http.StatusText(http.StatusBadRequest))
+	}
+
+	claims, err := s.helper.GetJWTClaims(ctx)
+	if err != nil {
+		s.Log.Errorf("failed to get jwt claims: %v", err)
+		return errors.New(http.StatusText(http.StatusUnauthorized))
+	}
+
+	data := &entity.User{}
+	if err := s.UserRepository.GetByEmail(tx, data, claims.Email); err != nil {
+		s.Log.Errorf("failed to get user by email: %v", err)
+		return errors.New(http.StatusText(http.StatusNotFound))
+	}
+	if err := s.UserRepository.GetByID(tx, data, claims.UserID); err != nil {
+		s.Log.Errorf("failed to get user by id: %v", err)
+		return errors.New(http.StatusText(http.StatusNotFound))
+	}
+
+	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	if err != nil {
+		s.Log.Errorf("failed to generate password: %v", err)
+		return errors.New(http.StatusText(http.StatusInternalServerError))
+	}
+
+	data.Password = string(password)
+	if err := s.UserRepository.Update(tx, data); err != nil {
+		s.Log.Errorf("failed to update user: %v", err)
+		return errors.New(http.StatusText(http.StatusInternalServerError))
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		s.Log.Errorf("failed to commit transaction: %v", err)
+		return errors.New(http.StatusText(http.StatusInternalServerError))
+	}
+
+	return nil
 }
 
 func (s *UserServiceImpl) RefreshToken(ctx context.Context, request *model.RefreshTokenRequest) (*model.TokenResponse, error) {

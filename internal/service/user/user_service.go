@@ -10,5 +10,6 @@ type UserService interface {
 	Login(ctx context.Context, request *model.LoginRequest) (*model.TokenResponse, error)
 	Profile(ctx context.Context) (*model.UserResponse, error)
 	Update(ctx context.Context, request *model.UpdateRequest) (*model.UserResponse, error)
+	ResetPassword(ctx context.Context, request *model.ResetPasswordRequest) error
 	RefreshToken(ctx context.Context, request *model.RefreshTokenRequest) (*model.TokenResponse, error)
 }

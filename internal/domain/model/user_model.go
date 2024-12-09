@@ -21,10 +21,14 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=8,lte=255"`
 }
 
+// UpdateRequest Just update profile
 type UpdateRequest struct {
-	Email    string `json:"email" validate:"omitempty,email,lte=100"`
-	Password string `json:"password" validate:"omitempty,min=8,lte=255"`
-	Name     string `json:"name" validate:"omitempty,lte=100"`
+	Name string `json:"name" validate:"omitempty,lte=100"`
+}
+
+type ResetPasswordRequest struct {
+	Email    string `json:"email" validate:"required,email,lte=100"`
+	Password string `json:"password" validate:"required,min=8,lte=255"`
 }
 
 type TokenResponse struct {
