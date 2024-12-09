@@ -17,9 +17,9 @@ func NewEventRepository(db *gorm.DB) *EventRepositoryImpl {
 }
 
 func (r *EventRepositoryImpl) FindAll(db *gorm.DB, events []*entity.Event) error {
-	return r.DB.Find(&events).Error
+	return db.Preload("Venue").Find(&events).Error
 }
 
 func (r *EventRepositoryImpl) FindById(db *gorm.DB,id uint ,event *entity.Event) error {
-	return db.Where("id = ?", id).First(&event).Error
+	return db.Where("id = ?", id).Preload("Venue").First(&event).Error
 }
