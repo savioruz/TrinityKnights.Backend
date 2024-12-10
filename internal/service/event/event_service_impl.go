@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
+	"github.com/TrinityKnights/Backend/internal/domain/model"
+	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
 	"github.com/TrinityKnights/Backend/internal/repository/event"
 	"github.com/TrinityKnights/Backend/pkg/helper"
 	"github.com/TrinityKnights/Backend/pkg/jwt"
@@ -33,7 +35,7 @@ func NewEventServiceImpl(db *gorm.DB, log *logrus.Logger, validate *validator.Va
 	}
 }
 
-func (s *EventServiceImpl) GetEventWithDetails(ctx context.Context, id uint) (*entity.Event, error) {
+func (s *EventServiceImpl) GetEventWithDetails(ctx context.Context, id uint) (*model.EventResponse, error) {
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 	data := &entity.Event{}
@@ -48,5 +50,5 @@ func (s *EventServiceImpl) GetEventWithDetails(ctx context.Context, id uint) (*e
 		return nil, errors.New(http.StatusText(http.StatusInternalServerError))
 	}
 
-	return data, nil
+	return converter.EventToResponse(data), nil
 }

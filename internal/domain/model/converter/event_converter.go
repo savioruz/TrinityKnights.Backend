@@ -10,7 +10,7 @@ func EventToResponse(event *entity.Event) *model.EventResponse {
 		ID:        event.ID,
 		Name:      event.Name,
 		Date:      event.Date.String(),
-		Time:      event.Time.String(),
+		Time:      event.Time,
 		VenueID:   event.VenueID,
 		Venue:     entity.Venue{
 			ID:    event.Venue.ID,
