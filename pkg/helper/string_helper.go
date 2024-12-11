@@ -13,3 +13,10 @@ func IntOrZero(i *int) int {
 	}
 	return *i
 }
+
+func UintOrZero(u *uint) uint {
+	if u == nil {
+		return 0
+	}
+	return *u
+}

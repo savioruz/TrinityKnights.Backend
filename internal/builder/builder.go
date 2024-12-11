@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
@@ -12,6 +13,7 @@ type Config struct {
 	App            *echo.Echo
 	UserHandler    *user.UserHandlerImpl
 	VenueHandler   *venue.VenueHandlerImpl
+	EventHandler   *event.EventHandlerImpl
 	AuthMiddleware echo.MiddlewareFunc
 	Routes         *route.Config
 }

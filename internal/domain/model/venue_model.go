@@ -20,8 +20,13 @@ type CreateVenueRequest struct {
 }
 
 type UpdateVenueRequest struct {
-	ID uint `param:"id" validate:"required"`
-	CreateVenueRequest
+	ID       uint   `param:"id" validate:"required"`
+	Name     string `json:"name" validate:"omitempty,lte=100"`
+	Address  string `json:"address" validate:"omitempty,lte=255"`
+	Capacity int    `json:"capacity" validate:"omitempty"`
+	City     string `json:"city" validate:"omitempty,lte=100"`
+	State    string `json:"state" validate:"omitempty,lte=100"`
+	Zip      string `json:"zip" validate:"omitempty,lte=10"`
 }
 
 type GetVenueRequest struct {

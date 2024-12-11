@@ -1,5 +1,26 @@
 basePath: /api/v1
 definitions:
+  github_com_TrinityKnights_Backend_internal_domain_model.CreateEventRequest:
+    properties:
+      date:
+        type: string
+      description:
+        maxLength: 255
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      time:
+        type: string
+      venue_id:
+        type: integer
+    required:
+    - date
+    - description
+    - name
+    - time
+    - venue_id
+    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.CreateVenueRequest:
     properties:
       address:
@@ -21,7 +42,6 @@ definitions:
         type: string
     required:
     - address
-    - capacity
     - city
     - name
     - state
@@ -33,6 +53,23 @@ definitions:
         type: integer
       message:
         type: string
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.EventResponse:
+    properties:
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      status:
+        type: string
+      time:
+        type: string
+      venue_id:
+        type: integer
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.LoginRequest:
     properties:
@@ -82,12 +119,32 @@ definitions:
     - name
     - password
     type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
   ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse
   : properties:
       data:
         items:
           $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.VenueResponse'
         type: array
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse'
       error:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       paging:
@@ -127,6 +184,25 @@ definitions:
       refresh_token:
         type: string
     type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.UpdateEventRequest:
+    properties:
+      date:
+        type: string
+      description:
+        maxLength: 255
+        type: string
+      id:
+        type: integer
+      name:
+        maxLength: 100
+        type: string
+      time:
+        type: string
+      venue_id:
+        type: integer
+    required:
+    - id
+    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest:
     properties:
       email:
@@ -162,13 +238,7 @@ definitions:
         maxLength: 10
         type: string
     required:
-    - address
-    - capacity
-    - city
     - id
-    - name
-    - state
-    - zip
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UserResponse:
     properties:
@@ -216,6 +286,210 @@ info:
   title: Trinity Knights API
   version: "0.1"
 paths:
+  /events:
+    get:
+      description: Get a paginated list of all events
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Sort field
+        enum:
+        - name
+        - date
+        - time
+        in: query
+        name: sort
+        type: string
+      - description: Sort order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all events
+      tags:
+      - events
+    post:
+      consumes:
+      - application/json
+      description: Create a new event with the provided details
+      parameters:
+      - description: Event details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.CreateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new event
+      tags:
+      - events
+  /events/{id}:
+    get:
+      description: Get details of a specific event by its ID
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get an event by ID
+      tags:
+      - events
+    put:
+      consumes:
+      - application/json
+      description: Update an existing event with the provided details
+      parameters:
+      - description: Event ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated event details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateEventRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing event
+      tags:
+      - events
+  /events/search:
+    get:
+      description: Search events with the provided query parameters
+      parameters:
+      - description: Event name
+        in: query
+        name: name
+        type: string
+      - description: Event description
+        in: query
+        name: description
+        type: string
+      - description: Event date
+        in: query
+        name: date
+        type: string
+      - description: Event time
+        in: query
+        name: time
+        type: string
+      - description: Venue ID
+        in: query
+        name: venue_id
+        type: integer
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Sort field
+        enum:
+        - name
+        - date
+        - time
+        in: query
+        name: sort
+        type: string
+      - description: Sort order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Search events
+      tags:
+      - events
   /users:
     get:
       consumes:

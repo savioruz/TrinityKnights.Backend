@@ -1,6 +1,7 @@
 package route
 
 import (
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/pkg/route"
@@ -18,6 +19,7 @@ type Config struct {
 	App          *echo.Echo
 	UserHandler  *user.UserHandlerImpl
 	VenueHandler *venue.VenueHandlerImpl
+	EventHandler *event.EventHandlerImpl
 }
 
 func (c Config) PublicRoute() []route.Route {
@@ -76,6 +78,31 @@ func (c Config) PrivateRoute() []route.Route {
 			Method:  echo.GET,
 			Path:    "/venues/search",
 			Handler: c.VenueHandler.SearchVenues,
+		},
+		{
+			Method:  echo.POST,
+			Path:    "/events",
+			Handler: c.EventHandler.CreateEvent,
+		},
+		{
+			Method:  echo.PUT,
+			Path:    "/events/:id",
+			Handler: c.EventHandler.UpdateEvent,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events/:id",
+			Handler: c.EventHandler.GetEventByID,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events",
+			Handler: c.EventHandler.GetAllEvents,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events/search",
+			Handler: c.EventHandler.SearchEvents,
 		},
 	}
 }
