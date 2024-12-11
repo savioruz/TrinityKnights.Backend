@@ -23,6 +23,323 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/events": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of all events",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get all events",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "name",
+                            "date",
+                            "time"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new event with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Create a new event",
+                "parameters": [
+                    {
+                        "description": "Event details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.CreateEventRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/search": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Search events with the provided query parameters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Search events",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event description",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event date",
+                        "name": "date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event time",
+                        "name": "time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Venue ID",
+                        "name": "venue_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "name",
+                            "date",
+                            "time"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get details of a specific event by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get an event by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update an existing event with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Update an existing event",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated event details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateEventRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -41,14 +358,6 @@ const docTemplate = `{
                     "user"
                 ],
                 "summary": "Get user profile",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "id",
-                        "in": "query"
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -279,9 +588,394 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/venues": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of all venues",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "venues"
+                ],
+                "summary": "Get all venues",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "name",
+                            "capacity"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new venue with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "venues"
+                ],
+                "summary": "Create a new venue",
+                "parameters": [
+                    {
+                        "description": "Venue details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.CreateVenueRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/venues/search": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Search venues with the provided query parameters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "venues"
+                ],
+                "summary": "Search venues",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Venue name",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Venue address",
+                        "name": "address",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Venue capacity",
+                        "name": "capacity",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Venue city",
+                        "name": "city",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Venue state",
+                        "name": "state",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Venue zip",
+                        "name": "zip",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "name",
+                            "capacity"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/venues/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get details of a specific venue by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "venues"
+                ],
+                "summary": "Get a venue by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Venue ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Update an existing venue with the provided details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "venues"
+                ],
+                "summary": "Update an existing venue",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Venue ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated venue details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateVenueRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "github_com_TrinityKnights_Backend_internal_domain_model.CreateEventRequest": {
+            "type": "object",
+            "required": [
+                "date",
+                "description",
+                "name",
+                "time",
+                "venue_id"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "time": {
+                    "type": "string"
+                },
+                "venue_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.CreateVenueRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "city",
+                "name",
+                "state",
+                "zip"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "state": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "zip": {
+                    "type": "string",
+                    "maxLength": 10
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.Error": {
             "type": "object",
             "properties": {
@@ -290,6 +984,32 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.EventResponse": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "venue_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -362,6 +1082,54 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.VenueResponse"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_EventResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TokenResponse": {
             "type": "object",
             "properties": {
@@ -390,6 +1158,20 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.VenueResponse"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.TokenResponse": {
             "type": "object",
             "properties": {
@@ -401,18 +1183,40 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest": {
+        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateEventRequest": {
             "type": "object",
             "required": [
                 "id"
             ],
             "properties": {
-                "email": {
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string",
                     "maxLength": 100
                 },
-                "id": {
+                "time": {
                     "type": "string"
+                },
+                "venue_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
                 },
                 "name": {
                     "type": "string",
@@ -422,6 +1226,40 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 8
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateVenueRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "state": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "zip": {
+                    "type": "string",
+                    "maxLength": 10
                 }
             }
         },
@@ -447,6 +1285,32 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.VenueResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "capacity": {
+                    "type": "integer"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "zip": {
                     "type": "string"
                 }
             }
