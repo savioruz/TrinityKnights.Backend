@@ -2,6 +2,7 @@ package builder
 
 import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -10,6 +11,7 @@ import (
 type Config struct {
 	App            *echo.Echo
 	UserHandler    *user.UserHandlerImpl
+	VenueHandler   *venue.VenueHandlerImpl
 	AuthMiddleware echo.MiddlewareFunc
 	Routes         *route.Config
 }
@@ -28,7 +30,7 @@ func (c *Config) BuildRoutes() {
 	}
 
 	// Private routes with auth middleware
-	privateGroup := g.Group("/api/v1", c.AuthMiddleware)
+	privateGroup := g.Group("", c.AuthMiddleware)
 	for _, r := range c.Routes.PrivateRoute() {
 		privateGroup.Add(r.Method, r.Path, r.Handler)
 	}

@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/pkg/route"
 	"github.com/labstack/echo/v4"
 	swagger "github.com/swaggo/echo-swagger"
@@ -14,11 +15,12 @@ type RouteConfig interface {
 }
 
 type Config struct {
-	App         *echo.Echo
-	UserHandler *user.UserHandlerImpl
+	App          *echo.Echo
+	UserHandler  *user.UserHandlerImpl
+	VenueHandler *venue.VenueHandlerImpl
 }
 
-func (c *Config) PublicRoute() []route.Route {
+func (c Config) PublicRoute() []route.Route {
 	return []route.Route{
 		{
 			Method:  echo.POST,
@@ -38,7 +40,7 @@ func (c *Config) PublicRoute() []route.Route {
 	}
 }
 
-func (c *Config) PrivateRoute() []route.Route {
+func (c Config) PrivateRoute() []route.Route {
 	return []route.Route{
 		{
 			Method:  echo.GET,
@@ -50,10 +52,35 @@ func (c *Config) PrivateRoute() []route.Route {
 			Path:    "/users",
 			Handler: c.UserHandler.Update,
 		},
+		{
+			Method:  echo.POST,
+			Path:    "/venues",
+			Handler: c.VenueHandler.CreateVenue,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/venues",
+			Handler: c.VenueHandler.GetAllVenues,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/venues/:id",
+			Handler: c.VenueHandler.GetVenueByID,
+		},
+		{
+			Method:  echo.PUT,
+			Path:    "/venues/:id",
+			Handler: c.VenueHandler.UpdateVenue,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/venues/search",
+			Handler: c.VenueHandler.SearchVenues,
+		},
 	}
 }
 
-func (c *Config) SwaggerRoutes() {
+func (c Config) SwaggerRoutes() {
 	c.App.GET("/swagger/*", swagger.WrapHandler)
 
 	c.App.GET("/", func(ctx echo.Context) error {

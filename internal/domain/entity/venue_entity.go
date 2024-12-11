@@ -9,7 +9,7 @@ type Venue struct {
 	Capacity int     `json:"capacity"`
 	City     string  `json:"city"`
 	State    string  `json:"state"`
-	Zip      string  `json:"zip"`
+	Zip      string  `json:"zip" gorm:"column:zip_code"`
 	Events   []Event `gorm:"foreignKey:VenueID"`
 	gorm.Model
 }
