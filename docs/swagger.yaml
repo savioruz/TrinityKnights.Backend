@@ -448,8 +448,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-      security:
-      - ApiKeyAuth: []
       summary: Get all events
       tags:
       - events
@@ -508,8 +506,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-      security:
-      - ApiKeyAuth: []
       summary: Get an event by ID
       tags:
       - events
@@ -608,8 +604,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-      security:
-      - ApiKeyAuth: []
       summary: Search events
       tags:
       - events
@@ -787,6 +781,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
       summary: Create a new payment
       tags:
       - payments
