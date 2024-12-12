@@ -58,42 +58,6 @@ func (h *OrderHandlerImpl) CreateOrder(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
 }
 
-// @Summary Update an order
-// @Description Update an existing order
-// @Tags orders
-// @Accept json
-// @Produce json
-// @Param id path int true "Order ID"
-// @Param request body model.UpdateOrderRequest true "Updated order details"
-// @Success 200 {object} model.Response[model.OrderResponse]
-// @Failure 400 {object} model.Error
-// @Failure 404 {object} model.Error
-// @Failure 500 {object} model.Error
-// @security ApiKeyAuth
-// @Router /orders/{id} [put]
-func (h *OrderHandlerImpl) UpdateOrder(ctx echo.Context) error {
-	request := new(model.UpdateOrderRequest)
-	if err := ctx.Bind(request); err != nil {
-		h.Log.Errorf("failed to bind request: %v", err)
-		return handler.HandleError(ctx, http.StatusBadRequest, err)
-	}
-
-	response, err := h.OrderService.UpdateOrder(ctx.Request().Context(), request)
-	if err != nil {
-		h.Log.Errorf("failed to update order: %v", err)
-		switch {
-		case errors.Is(err, domainErrors.ErrNotFound):
-			return handler.HandleError(ctx, http.StatusNotFound, err)
-		case errors.Is(err, domainErrors.ErrValidation):
-			return handler.HandleError(ctx, http.StatusBadRequest, err)
-		default:
-			return handler.HandleError(ctx, http.StatusInternalServerError, err)
-		}
-	}
-
-	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
-}
-
 // @Summary Get order by ID
 // @Description Get details of a specific order
 // @Tags orders

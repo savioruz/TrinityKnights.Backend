@@ -11,9 +11,8 @@ type Order struct {
 	UserID     string    `json:"user_id" gorm:"not null"`
 	Date       time.Time `json:"date" gorm:"not null"`
 	TotalPrice float64   `json:"total_price" gorm:"not null"`
-	PaymentID  uint      `json:"payment_id" gorm:"not null"`
 	User       User      `json:"user" gorm:"foreignKey:UserID"`
-	Payment    *Payment  `json:"payment" gorm:"foreignKey:PaymentID"`
+	Payment    *Payment  `json:"payment" gorm:"foreignKey:OrderID"`
 	Tickets    []Ticket  `json:"tickets" gorm:"foreignKey:OrderID"`
 	gorm.Model
 }

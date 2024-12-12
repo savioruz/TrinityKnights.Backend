@@ -1,25 +1,22 @@
 package model
 
 type OrderTicketRequest struct {
-	EventID       uint   `json:"event_id" validate:"required"`
-	Quantity      int    `json:"quantity" validate:"required,min=1"`
-	UserID        string `json:"user_id" validate:"required"`
-	PaymentID     uint   `json:"payment_id" validate:"required"`
-	PaymentMethod string `json:"payment_method" validate:"required"`
+	EventID    uint   `json:"event_id" validate:"required"`
+	Quantity   int    `json:"quantity" validate:"required,min=1"`
+	SeatNumber string `json:"seat_number" validate:"required"`
 }
 
 type OrderResponse struct {
-	ID         uint    `json:"id"`
-	EventID    uint    `json:"event_id"`
-	UserID     string  `json:"user_id"`
-	Quantity   int     `json:"quantity"`
-	TotalPrice float64 `json:"total_price"`
-	PaymentID  uint    `json:"payment_id"`
+	ID         uint             `json:"id"`
+	EventID    uint             `json:"event_id"`
+	UserID     string           `json:"user_id"`
+	Quantity   int              `json:"quantity"`
+	TotalPrice float64          `json:"total_price"`
+	Tickets    []TicketResponse `json:"tickets"`
 }
 
 type UpdateOrderRequest struct {
-	ID        uint `param:"id" validate:"required"`
-	PaymentID uint `json:"payment_id" validate:"required"`
+	ID uint `param:"id" validate:"required"`
 }
 
 type GetOrderRequest struct {
