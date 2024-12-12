@@ -1,13 +1,14 @@
 package entity
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Order struct {
 	ID         uint      `json:"id" gorm:"primaryKey;autoIncrement"`
-	UserID     uint      `json:"user_id" gorm:"not null"`
+	UserID     string    `json:"user_id" gorm:"not null"`
 	Date       time.Time `json:"date" gorm:"not null"`
 	TotalPrice float64   `json:"total_price" gorm:"not null"`
 	PaymentID  uint      `json:"payment_id" gorm:"not null"`

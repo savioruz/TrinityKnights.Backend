@@ -84,6 +84,38 @@ definitions:
     - email
     - password
     type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse:
+    properties:
+      event_id:
+        type: integer
+      id:
+        type: integer
+      payment_id:
+        type: integer
+      quantity:
+        type: integer
+      total_price:
+        type: number
+      user_id:
+        type: string
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.OrderTicketRequest:
+    properties:
+      event_id:
+        type: integer
+      payment_id:
+        type: integer
+      quantity:
+        minimum: 1
+        type: integer
+      user_id:
+        type: string
+    required:
+    - event_id
+    - payment_id
+    - quantity
+    - user_id
+    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata:
     properties:
       page:
@@ -130,6 +162,17 @@ definitions:
       paging:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
     type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
   ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_VenueResponse
   : properties:
       data:
@@ -145,6 +188,15 @@ definitions:
   : properties:
       data:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse'
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse'
       error:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       paging:
@@ -202,6 +254,16 @@ definitions:
         type: integer
     required:
     - id
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.UpdateOrderRequest:
+    properties:
+      id:
+        type: integer
+      payment_id:
+        type: integer
+    required:
+    - id
+    - payment_id
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest:
     properties:
@@ -490,6 +552,153 @@ paths:
       summary: Search events
       tags:
       - events
+  /orders:
+    get:
+      description: Get a paginated list of all orders
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Sort field
+        enum:
+        - date
+        - total_price
+        in: query
+        name: sort
+        type: string
+      - description: Sort order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all orders
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: Create a new order for event tickets
+      parameters:
+      - description: Order details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new order
+      tags:
+      - orders
+  /orders/{id}:
+    get:
+      description: Get details of a specific order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Get order by ID
+      tags:
+      - orders
+    put:
+      consumes:
+      - application/json
+      description: Update an existing order
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated order details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an order
+      tags:
+      - orders
   /users:
     get:
       consumes:
