@@ -1,6 +1,9 @@
 package event
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/repository"
@@ -21,7 +24,14 @@ func NewEventRepository(db *gorm.DB, log *logrus.Logger) *EventRepositoryImpl {
 }
 
 func (r *EventRepositoryImpl) GetByID(db *gorm.DB, event *entity.Event, id uint) error {
-	return db.Where("id = ?", id).Take(&event).Error
+	result := db.Where("id = ?", id).First(event)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return gorm.ErrRecordNotFound
+		}
+		return result.Error
+	}
+	return nil
 }
 
 func (r *EventRepositoryImpl) GetPaginated(db *gorm.DB, events *[]entity.Event, opts model.EventQueryOptions) (int64, error) {
@@ -57,6 +67,24 @@ func (r *EventRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts model.EventQ
 	}
 	if opts.Description != nil && *opts.Description != "" {
 		query = query.Where("LOWER(description) LIKE LOWER(?)", "%"+*opts.Description+"%")
+	}
+	if opts.Date != nil && *opts.Date != "" {
+		query = query.Where("DATE(date) = ?", *opts.Date)
+	}
+	if opts.Time != nil && *opts.Time != "" {
+		query = query.Where("time = ?::time", *opts.Time)
+	}
+	if opts.VenueID != nil && *opts.VenueID != 0 {
+		query = query.Where("venue_id = ?", *opts.VenueID)
+	}
+
+	// Add sorting
+	if opts.Sort != "" {
+		direction := "ASC"
+		if strings.ToUpper(opts.Order) == "DESC" {
+			direction = "DESC"
+		}
+		query = query.Order(fmt.Sprintf("%s %s", opts.Sort, direction))
 	}
 
 	return query

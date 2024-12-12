@@ -3,6 +3,7 @@ definitions:
   github_com_TrinityKnights_Backend_internal_domain_model.CreateEventRequest:
     properties:
       date:
+        example: "2024-03-20"
         type: string
       description:
         maxLength: 255
@@ -11,6 +12,7 @@ definitions:
         maxLength: 100
         type: string
       time:
+        example: "14:30:00"
         type: string
       venue_id:
         type: integer
@@ -300,6 +302,7 @@ definitions:
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateEventRequest:
     properties:
       date:
+        example: "2024-03-20"
         type: string
       description:
         maxLength: 255
@@ -310,6 +313,7 @@ definitions:
         maxLength: 100
         type: string
       time:
+        example: "14:30:00"
         type: string
       venue_id:
         type: integer
