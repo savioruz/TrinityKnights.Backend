@@ -1,6 +1,18 @@
 package entity
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
+
+type PaymentStatus string
+
+const (
+	PaymentStatusPending   PaymentStatus = "PENDING"
+	PaymentStatusSuccess   PaymentStatus = "SUCCESS"
+	PaymentStatusFailed    PaymentStatus = "FAILED"
+	PaymentStatusExpired   PaymentStatus = "EXPIRED"
+	PaymentStatusCancelled PaymentStatus = "CANCELLED"
+)
 
 type Payment struct {
 	ID            uint   `json:"id" gorm:"primaryKey;autoIncrement"`

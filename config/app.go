@@ -28,6 +28,7 @@ type BootstrapConfig struct {
 	Log      *logrus.Logger
 	Validate *validator.Validate
 	JWT      *jwt.JWTConfig
+	Midtrans MidtransConfig
 }
 
 func Bootstrap(config *BootstrapConfig) error {

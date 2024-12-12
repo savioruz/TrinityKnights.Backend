@@ -9,6 +9,7 @@ import (
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
 	"github.com/TrinityKnights/Backend/internal/repository/order"
+	"github.com/TrinityKnights/Backend/internal/service/payment"
 	"github.com/TrinityKnights/Backend/pkg/cache"
 	domainErrors "github.com/TrinityKnights/Backend/pkg/errors"
 	"github.com/go-playground/validator/v10"
@@ -22,15 +23,17 @@ type OrderServiceImpl struct {
 	Log             *logrus.Logger
 	Validate        *validator.Validate
 	OrderRepository order.OrderRepository
+	PaymentService  payment.PaymentService
 }
 
-func NewOrderServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository) *OrderServiceImpl {
+func NewOrderServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository, paymentService payment.PaymentService) *OrderServiceImpl {
 	return &OrderServiceImpl{
 		DB:              db,
 		Cache:           cache,
 		Log:             log,
 		Validate:        validate,
 		OrderRepository: orderRepository,
+		PaymentService:  paymentService,
 	}
 }
 
@@ -52,12 +55,11 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Create order
+	// Create order first
 	order := &entity.Order{
 		UserID:     request.UserID,
 		Date:       time.Now(),
-		TotalPrice: float64(request.Quantity) * 10.0, // Example price calculation
-		PaymentID:  request.PaymentID,
+		TotalPrice: float64(request.Quantity) * 10.0, // @TODO: Change to event price
 	}
 
 	if err := s.OrderRepository.Create(tx, order); err != nil {
@@ -78,19 +80,32 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		}
 	}
 
+	// Initialize payment
+	paymentReq := &model.PaymentRequest{
+		OrderID:       order.ID,
+		Amount:        order.TotalPrice,
+		PaymentMethod: request.PaymentMethod,
+	}
+
+	paymentResp, err := s.PaymentService.CreatePayment(ctx, paymentReq)
+	if err != nil {
+		s.Log.Errorf("failed to create payment: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	// Update order with payment ID
+	order.PaymentID = paymentResp.ID
+	if err := s.OrderRepository.Update(tx, order); err != nil {
+		s.Log.Errorf("failed to update order: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
 	if err := tx.Commit().Error; err != nil {
 		s.Log.Errorf("failed to commit transaction: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	return &model.OrderResponse{
-		ID:         order.ID,
-		EventID:    request.EventID,
-		UserID:     request.UserID,
-		Quantity:   request.Quantity,
-		TotalPrice: order.TotalPrice,
-		PaymentID:  request.PaymentID,
-	}, nil
+	return converter.OrderEntityToResponse(order), nil
 }
 
 func (s *OrderServiceImpl) UpdateOrder(ctx context.Context, request *model.UpdateOrderRequest) (*model.OrderResponse, error) {
