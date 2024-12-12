@@ -38,6 +38,11 @@ func NewEventServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger
 	}
 }
 
+const (
+	dateLayout = "2006-01-02"
+	timeLayout = "15:04:05"
+)
+
 func (s *EventServiceImpl) CreateEvent(ctx context.Context, request *model.CreateEventRequest) (*model.EventResponse, error) {
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
@@ -46,11 +51,17 @@ func (s *EventServiceImpl) CreateEvent(ctx context.Context, request *model.Creat
 		return nil, domainErrors.ErrValidation
 	}
 
+	parsedDateTime, err := parseDateTime(request.Date, request.Time)
+	if err != nil {
+		s.Log.Errorf("failed to parse date time: %v", err)
+		return nil, domainErrors.ErrValidation
+	}
+
 	data := &entity.Event{
 		Name:        request.Name,
 		Description: request.Description,
-		Date:        request.Date,
-		Time:        request.Time,
+		Date:        parsedDateTime,
+		Time:        parsedDateTime,
 		VenueID:     request.VenueID,
 	}
 
@@ -74,12 +85,18 @@ func (s *EventServiceImpl) UpdateEvent(ctx context.Context, request *model.Updat
 		return nil, domainErrors.ErrValidation
 	}
 
+	parsedDateTime, err := parseDateTime(request.Date, request.Time)
+	if err != nil {
+		s.Log.Errorf("failed to parse date time: %v", err)
+		return nil, domainErrors.ErrValidation
+	}
+
 	data := &entity.Event{
 		ID:          request.ID,
 		Name:        request.Name,
 		Description: request.Description,
-		Date:        request.Date,
-		Time:        request.Time,
+		Date:        parsedDateTime,
+		Time:        parsedDateTime,
 		VenueID:     request.VenueID,
 	}
 
@@ -234,4 +251,25 @@ func (s *EventServiceImpl) SearchEvents(ctx context.Context, request *model.Even
 	}
 
 	return response, nil
+}
+
+func parseDateTime(dateStr, timeStr string) (time.Time, error) {
+	// Parse date
+	date, err := time.Parse(dateLayout, dateStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid date format: %w", err)
+	}
+
+	// Parse time
+	timeVal, err := time.Parse(timeLayout, timeStr)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid time format: %w", err)
+	}
+
+	// Combine date and time
+	return time.Date(
+		date.Year(), date.Month(), date.Day(),
+		timeVal.Hour(), timeVal.Minute(), timeVal.Second(),
+		0, time.Local,
+	), nil
 }
