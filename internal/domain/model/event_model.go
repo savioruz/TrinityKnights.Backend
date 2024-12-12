@@ -13,20 +13,20 @@ type EventResponse struct {
 }
 
 type CreateEventRequest struct {
-	Name        string    `json:"name" validate:"required,lte=100"`
-	Description string    `json:"description" validate:"required,lte=255"`
-	Date        time.Time `json:"date" validate:"required"`
-	Time        time.Time `json:"time" validate:"required"`
-	VenueID     uint      `json:"venue_id" validate:"required"`
+	Name        string `json:"name" validate:"required,lte=100"`
+	Description string `json:"description" validate:"required,lte=255"`
+	Date        string `json:"date" validate:"required" example:"2024-03-20"`
+	Time        string `json:"time" validate:"required" example:"14:30:00"`
+	VenueID     uint   `json:"venue_id" validate:"required"`
 }
 
 type UpdateEventRequest struct {
-	ID          uint      `param:"id" validate:"required"`
-	Name        string    `json:"name" validate:"omitempty,lte=100"`
-	Description string    `json:"description" validate:"omitempty,lte=255"`
-	Date        time.Time `json:"date" validate:"omitempty"`
-	Time        time.Time `json:"time" validate:"omitempty"`
-	VenueID     uint      `json:"venue_id" validate:"omitempty"`
+	ID          uint   `param:"id" validate:"required"`
+	Name        string `json:"name" validate:"omitempty,lte=100"`
+	Description string `json:"description" validate:"omitempty,lte=255"`
+	Date        string `json:"date" validate:"omitempty" example:"2024-03-20"`
+	Time        string `json:"time" validate:"omitempty" example:"14:30:00"`
+	VenueID     uint   `json:"venue_id" validate:"omitempty"`
 }
 
 type GetEventRequest struct {
@@ -43,8 +43,8 @@ type EventsRequest struct {
 type EventSearchRequest struct {
 	Name        string `query:"name" validate:"omitempty,lte=100"`
 	Description string `query:"description" validate:"omitempty,lte=255"`
-	Date        string `query:"date" validate:"omitempty"`
-	Time        string `query:"time" validate:"omitempty"`
+	Date        string `query:"date" validate:"omitempty,datetime=2006-01-02"`
+	Time        string `query:"time" validate:"omitempty,datetime=15:04:05"`
 	VenueID     uint   `query:"venue_id" validate:"omitempty"`
 	Page        int    `query:"page" validate:"numeric"`
 	Size        int    `query:"size" validate:"numeric"`
