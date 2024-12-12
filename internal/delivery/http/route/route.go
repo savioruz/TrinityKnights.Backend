@@ -44,6 +44,21 @@ func (c Config) PublicRoute() []route.Route {
 			Handler: c.UserHandler.RefreshToken,
 		},
 		{
+			Method:  echo.GET,
+			Path:    "/events/:id",
+			Handler: c.EventHandler.GetEventByID,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events",
+			Handler: c.EventHandler.GetAllEvents,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events/search",
+			Handler: c.EventHandler.SearchEvents,
+		},
+		{
 			Method:  echo.POST,
 			Path:    "/payments/callback",
 			Handler: c.PaymentHandler.HandleCallback,
@@ -97,21 +112,6 @@ func (c Config) PrivateRoute() []route.Route {
 			Method:  echo.PUT,
 			Path:    "/events/:id",
 			Handler: c.EventHandler.UpdateEvent,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events/:id",
-			Handler: c.EventHandler.GetEventByID,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events",
-			Handler: c.EventHandler.GetAllEvents,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events/search",
-			Handler: c.EventHandler.SearchEvents,
 		},
 		{
 			Method:  echo.POST,

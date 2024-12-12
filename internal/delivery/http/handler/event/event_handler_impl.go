@@ -96,7 +96,6 @@ func (h *EventHandlerImpl) UpdateEvent(ctx echo.Context) error {
 // @Success 200 {object} model.Response[model.EventResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
-// @security ApiKeyAuth
 // @Router /events/{id} [get]
 func (h *EventHandlerImpl) GetEventByID(ctx echo.Context) error {
 	request := new(model.GetEventRequest)
@@ -130,7 +129,6 @@ func (h *EventHandlerImpl) GetEventByID(ctx echo.Context) error {
 // @Success 200 {object} model.Response[[]model.EventResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
-// @security ApiKeyAuth
 // @Router /events [get]
 func (h *EventHandlerImpl) GetAllEvents(ctx echo.Context) error {
 	request := new(model.EventsRequest)
@@ -170,7 +168,6 @@ func (h *EventHandlerImpl) GetAllEvents(ctx echo.Context) error {
 // @Success 200 {object} model.Response[[]model.EventResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
-// @security ApiKeyAuth
 // @Router /events/search [get]
 func (h *EventHandlerImpl) SearchEvents(ctx echo.Context) error {
 	request := new(model.EventSearchRequest)
