@@ -491,68 +491,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "put": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Update an existing order",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "orders"
-                ],
-                "summary": "Update an order",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Order ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated order details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateOrderRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
-                        }
-                    }
-                }
             }
         },
         "/payments": {
@@ -1316,9 +1254,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "status": {
-                    "type": "string"
-                },
                 "time": {
                     "type": "string"
                 },
@@ -1371,11 +1306,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "payment_id": {
-                    "type": "integer"
-                },
                 "quantity": {
                     "type": "integer"
+                },
+                "tickets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse"
+                    }
                 },
                 "total_price": {
                     "type": "number"
@@ -1389,26 +1327,18 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "event_id",
-                "payment_id",
-                "payment_method",
                 "quantity",
-                "user_id"
+                "seat_number"
             ],
             "properties": {
                 "event_id": {
                     "type": "integer"
                 },
-                "payment_id": {
-                    "type": "integer"
-                },
-                "payment_method": {
-                    "type": "string"
-                },
                 "quantity": {
                     "type": "integer",
                     "minimum": 1
                 },
-                "user_id": {
+                "seat_number": {
                     "type": "string"
                 }
             }
@@ -1656,6 +1586,38 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse": {
+            "type": "object",
+            "properties": {
+                "event": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse"
+                },
+                "event_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "payment": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "seat_number": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.TokenResponse": {
             "type": "object",
             "properties": {
@@ -1693,21 +1655,6 @@ const docTemplate = `{
                     "example": "14:30:00"
                 },
                 "venue_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateOrderRequest": {
-            "type": "object",
-            "required": [
-                "id",
-                "payment_id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "payment_id": {
                     "type": "integer"
                 }
             }

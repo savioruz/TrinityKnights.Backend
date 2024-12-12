@@ -66,8 +66,6 @@ definitions:
         type: integer
       name:
         type: string
-      status:
-        type: string
       time:
         type: string
       venue_id:
@@ -103,10 +101,12 @@ definitions:
         type: integer
       id:
         type: integer
-      payment_id:
-        type: integer
       quantity:
         type: integer
+      tickets:
+        items:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse'
+        type: array
       total_price:
         type: number
       user_id:
@@ -116,21 +116,15 @@ definitions:
     properties:
       event_id:
         type: integer
-      payment_id:
-        type: integer
-      payment_method:
-        type: string
       quantity:
         minimum: 1
         type: integer
-      user_id:
+      seat_number:
         type: string
     required:
     - event_id
-    - payment_id
-    - payment_method
     - quantity
-    - user_id
+    - seat_number
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata:
     properties:
@@ -292,6 +286,27 @@ definitions:
       paging:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
     type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse:
+    properties:
+      event:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.EventResponse'
+      event_id:
+        type: integer
+      id:
+        type: integer
+      order:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse'
+      order_id:
+        type: integer
+      payment:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse'
+      price:
+        type: number
+      seat_number:
+        type: string
+      type:
+        type: string
+    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.TokenResponse:
     properties:
       access_token:
@@ -319,16 +334,6 @@ definitions:
         type: integer
     required:
     - id
-    type: object
-  github_com_TrinityKnights_Backend_internal_domain_model.UpdateOrderRequest:
-    properties:
-      id:
-        type: integer
-      payment_id:
-        type: integer
-    required:
-    - id
-    - payment_id
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest:
     properties:
@@ -716,46 +721,6 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Get order by ID
-      tags:
-      - orders
-    put:
-      consumes:
-      - application/json
-      description: Update an existing order
-      parameters:
-      - description: Order ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated order details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateOrderRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_OrderResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-      security:
-      - ApiKeyAuth: []
-      summary: Update an order
       tags:
       - orders
   /payments:
