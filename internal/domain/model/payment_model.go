@@ -1,29 +1,30 @@
 package model
 
-// PaymentResponse adalah model untuk merepresentasikan data pembayaran pada respons API.
+const (
+	PaymentMethodBankTransfer = "bank_transfer"
+	PaymentMethodQRIS         = "qris"
+	// @TODO: Add other payment methods as needed
+)
+
+type PaymentRequest struct {
+	OrderID       uint    `json:"order_id" validate:"required"`
+	Amount        float64 `json:"amount" validate:"required"`
+	PaymentMethod string  `json:"payment_method" validate:"required"`
+}
+
 type PaymentResponse struct {
-	ID            uint   `json:"id"`
-	OrderID       uint   `json:"order_id"`
-	Method        string `json:"method"`
-	TransactionID string `json:"transaction_id"`
+	ID            uint    `json:"id"`
+	OrderID       uint    `json:"order_id"`
+	Amount        float64 `json:"amount"`
+	Status        string  `json:"status"`
+	PaymentMethod string  `json:"payment_method"`
+	MidtransID    string  `json:"midtrans_id"`
+	PaymentURL    string  `json:"payment_url"`
 }
 
-// CreatePaymentRequest adalah model untuk menerima data pembayaran saat pembuatan pembayaran.
-type CreatePaymentRequest struct {
-	OrderID       uint   `json:"order_id" validate:"required"`
-	Method        string `json:"method" validate:"required"`
-	TransactionID string `json:"transaction_id" validate:"required"`
-}
-
-// UpdatePaymentRequest adalah model untuk menerima data pembayaran saat pembaruan pembayaran.
-type UpdatePaymentRequest struct {
-	ID            uint   `param:"id" validate:"required"`
-	OrderID       uint   `json:"order_id" validate:"omitempty"`
-	Method        string `json:"method" validate:"omitempty"`
-	TransactionID string `json:"transaction_id" validate:"omitempty"`
-}
-
-// GetPaymentRequest adalah model untuk menerima ID pembayaran saat meminta data pembayaran.
-type GetPaymentRequest struct {
-	ID uint `param:"id" validate:"required"`
+type MidtransCallbackRequest struct {
+	TransactionStatus string `json:"transaction_status"`
+	OrderID           string `json:"order_id"`
+	PaymentType       string `json:"payment_type"`
+	FraudStatus       string `json:"fraud_status"`
 }

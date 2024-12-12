@@ -1,33 +1,25 @@
 package model
 
-import (
-	"time"
-)
-
-type OrderResponse struct {
-	ID         uint             `json:"id"`
-	UserID     uint             `json:"user_id"`
-	Date       time.Time        `json:"date"`
-	TotalPrice float64          `json:"total_price"`
-	PaymentID  uint             `json:"payment_id"`
-	User       UserResponse     `json:"user"`
-	Payment    PaymentResponse  `json:"payment"`
-	Tickets    []TicketResponse `json:"tickets"`
+type OrderTicketRequest struct {
+	EventID       uint   `json:"event_id" validate:"required"`
+	Quantity      int    `json:"quantity" validate:"required,min=1"`
+	UserID        string `json:"user_id" validate:"required"`
+	PaymentID     uint   `json:"payment_id" validate:"required"`
+	PaymentMethod string `json:"payment_method" validate:"required"`
 }
 
-type CreateOrderRequest struct {
-	UserID     uint    `json:"user_id" validate:"required"`
-	TotalPrice float64 `json:"total_price" validate:"required"`
-	PaymentID  uint    `json:"payment_id" validate:"required"`
-	Tickets    []uint  `json:"tickets" validate:"required"` // Ticket IDs
+type OrderResponse struct {
+	ID         uint    `json:"id"`
+	EventID    uint    `json:"event_id"`
+	UserID     string  `json:"user_id"`
+	Quantity   int     `json:"quantity"`
+	TotalPrice float64 `json:"total_price"`
+	PaymentID  uint    `json:"payment_id"`
 }
 
 type UpdateOrderRequest struct {
-	ID         uint    `param:"id" validate:"required"`
-	UserID     uint    `json:"user_id" validate:"omitempty"`
-	TotalPrice float64 `json:"total_price" validate:"omitempty"`
-	PaymentID  uint    `json:"payment_id" validate:"omitempty"`
-	Tickets    []uint  `json:"tickets" validate:"omitempty"` // Updated Ticket IDs
+	ID        uint `param:"id" validate:"required"`
+	PaymentID uint `json:"payment_id" validate:"required"`
 }
 
 type GetOrderRequest struct {
@@ -37,29 +29,6 @@ type GetOrderRequest struct {
 type OrdersRequest struct {
 	Page  int    `query:"page" validate:"numeric"`
 	Size  int    `query:"size" validate:"numeric"`
-	Sort  string `query:"sort" validate:"omitempty,oneof=id user_id total_price date"`
-	Order string `query:"order" validate:"omitempty,oneof=asc,desc"`
-}
-
-type OrderSearchRequest struct {
-	UserID     uint   `query:"user_id" validate:"omitempty"`
-	Date       string `query:"date" validate:"omitempty"`
-	TotalPrice string `query:"total_price" validate:"omitempty"`
-	PaymentID  uint   `query:"payment_id" validate:"omitempty"`
-	Page       int    `query:"page" validate:"numeric"`
-	Size       int    `query:"size" validate:"numeric"`
-	Sort       string `query:"sort" validate:"omitempty,oneof=id user_id total_price date"`
-	Order      string `query:"order" validate:"omitempty,oneof=asc,desc"`
-}
-
-type OrderQueryOptions struct {
-	ID         *uint
-	UserID     *uint
-	Date       *string
-	TotalPrice *string
-	PaymentID  *uint
-	Page       int
-	Size       int
-	Sort       string
-	Order      string
+	Sort  string `query:"sort" validate:"omitempty,oneof=date total_price"`
+	Order string `query:"order" validate:"omitempty"`
 }

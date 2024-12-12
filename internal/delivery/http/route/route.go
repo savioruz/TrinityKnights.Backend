@@ -2,6 +2,8 @@ package route
 
 import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/pkg/route"
@@ -16,10 +18,12 @@ type RouteConfig interface {
 }
 
 type Config struct {
-	App          *echo.Echo
-	UserHandler  *user.UserHandlerImpl
-	VenueHandler *venue.VenueHandlerImpl
-	EventHandler *event.EventHandlerImpl
+	App            *echo.Echo
+	UserHandler    *user.UserHandlerImpl
+	VenueHandler   *venue.VenueHandlerImpl
+	EventHandler   *event.EventHandlerImpl
+	OrderHandler   *order.OrderHandlerImpl
+	PaymentHandler *payment.PaymentHandlerImpl
 }
 
 func (c Config) PublicRoute() []route.Route {
@@ -38,6 +42,11 @@ func (c Config) PublicRoute() []route.Route {
 			Method:  echo.POST,
 			Path:    "/users/refresh",
 			Handler: c.UserHandler.RefreshToken,
+		},
+		{
+			Method:  echo.POST,
+			Path:    "/payments/callback",
+			Handler: c.PaymentHandler.HandleCallback,
 		},
 	}
 }
@@ -103,6 +112,31 @@ func (c Config) PrivateRoute() []route.Route {
 			Method:  echo.GET,
 			Path:    "/events/search",
 			Handler: c.EventHandler.SearchEvents,
+		},
+		{
+			Method:  echo.POST,
+			Path:    "/orders",
+			Handler: c.OrderHandler.CreateOrder,
+		},
+		{
+			Method:  echo.PUT,
+			Path:    "/orders/:id",
+			Handler: c.OrderHandler.UpdateOrder,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/orders/:id",
+			Handler: c.OrderHandler.GetOrderByID,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/orders",
+			Handler: c.OrderHandler.GetAllOrders,
+		},
+		{
+			Method:  echo.POST,
+			Path:    "/payments",
+			Handler: c.PaymentHandler.CreatePayment,
 		},
 	}
 }
