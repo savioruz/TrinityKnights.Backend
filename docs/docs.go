@@ -1235,7 +1235,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-03-20"
                 },
                 "description": {
                     "type": "string",
@@ -1246,7 +1247,8 @@ const docTemplate = `{
                     "maxLength": 100
                 },
                 "time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "14:30:00"
                 },
                 "venue_id": {
                     "type": "integer"
@@ -1672,7 +1674,8 @@ const docTemplate = `{
             ],
             "properties": {
                 "date": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2024-03-20"
                 },
                 "description": {
                     "type": "string",
@@ -1686,7 +1689,8 @@ const docTemplate = `{
                     "maxLength": 100
                 },
                 "time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "14:30:00"
                 },
                 "venue_id": {
                     "type": "integer"

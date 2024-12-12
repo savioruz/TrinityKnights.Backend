@@ -1,15 +1,18 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/TrinityKnights/Backend/pkg/helper"
+)
 
 type EventResponse struct {
-	ID          uint      `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Date        time.Time `json:"date"`
-	Time        time.Time `json:"time"`
-	VenueID     uint      `json:"venue_id"`
-	Status      string    `json:"status"`
+	ID          uint           `json:"id"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Date        time.Time      `json:"date"`
+	Time        helper.SQLTime `json:"time"`
+	VenueID     uint           `json:"venue_id"`
 }
 
 type CreateEventRequest struct {

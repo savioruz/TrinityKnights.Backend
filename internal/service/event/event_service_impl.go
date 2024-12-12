@@ -61,7 +61,7 @@ func (s *EventServiceImpl) CreateEvent(ctx context.Context, request *model.Creat
 		Name:        request.Name,
 		Description: request.Description,
 		Date:        parsedDateTime,
-		Time:        parsedDateTime,
+		Time:        helper.SQLTime(parsedDateTime),
 		VenueID:     request.VenueID,
 	}
 
@@ -96,7 +96,7 @@ func (s *EventServiceImpl) UpdateEvent(ctx context.Context, request *model.Updat
 		Name:        request.Name,
 		Description: request.Description,
 		Date:        parsedDateTime,
-		Time:        parsedDateTime,
+		Time:        helper.SQLTime(parsedDateTime),
 		VenueID:     request.VenueID,
 	}
 
