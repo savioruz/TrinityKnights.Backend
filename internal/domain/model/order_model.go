@@ -1,10 +1,11 @@
 package model
 
 type OrderTicketRequest struct {
-	EventID   uint   `json:"event_id" validate:"required"`
-	Quantity  int    `json:"quantity" validate:"required,min=1"`
-	UserID    string `json:"user_id" validate:"required"`
-	PaymentID uint   `json:"payment_id" validate:"required"`
+	EventID       uint   `json:"event_id" validate:"required"`
+	Quantity      int    `json:"quantity" validate:"required,min=1"`
+	UserID        string `json:"user_id" validate:"required"`
+	PaymentID     uint   `json:"payment_id" validate:"required"`
+	PaymentMethod string `json:"payment_method" validate:"required"`
 }
 
 type OrderResponse struct {
