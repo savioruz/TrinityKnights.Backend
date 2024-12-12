@@ -13,7 +13,6 @@ type EventResponse struct {
 	Date        time.Time      `json:"date"`
 	Time        helper.SQLTime `json:"time"`
 	VenueID     uint           `json:"venue_id"`
-	Status      string         `json:"status"`
 }
 
 type CreateEventRequest struct {
