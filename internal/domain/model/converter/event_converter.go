@@ -5,23 +5,33 @@ import (
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 )
 
-func EventToResponse(event *entity.Event) *model.EventResponse {
+func EventEntityToResponse(event *entity.Event) *model.EventResponse {
 	return &model.EventResponse{
-		ID:        event.ID,
-		Name:      event.Name,
-		Date:      event.Date.String(),
-		Time:      event.Time,
-		VenueID:   event.VenueID,
-		Venue:     entity.Venue{
-			ID:    event.Venue.ID,
-			Name:  event.Venue.Name,
-			Address:  event.Venue.Address,
-			Capacity: event.Venue.Capacity,
-			City:  event.Venue.City,
-			State: event.Venue.State,
-			Zip:   event.Venue.Zip,
-		},	
-		CreatedAt: event.CreatedAt.String(),
-		UpdatedAt: event.UpdatedAt.String(),
+		ID:          event.ID,
+		Name:        event.Name,
+		Description: event.Description,
+		Date:        event.Date,
+		Time:        event.Time,
+		VenueID:     event.VenueID,
 	}
+}
+
+func EventsToResponses(events []entity.Event) []*model.EventResponse {
+	eventResponses := make([]*model.EventResponse, len(events))
+	for i := range events {
+		eventResponses[i] = EventEntityToResponse(&events[i])
+	}
+	return eventResponses
+}
+
+func EventsToPaginatedResponse(events []entity.Event, totalItems int64, page, size int) *model.Response[[]*model.EventResponse] {
+	eventsResponse := EventsToResponses(events)
+	totalPages := (int(totalItems) + size - 1) / size
+
+	return model.NewResponse(eventsResponse, &model.PageMetadata{
+		Page:       page,
+		Size:       size,
+		TotalItems: int(totalItems),
+		TotalPages: totalPages,
+	})
 }

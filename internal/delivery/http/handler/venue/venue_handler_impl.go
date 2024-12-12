@@ -1,4 +1,4 @@
-package event
+package venue
 
 import (
 	"errors"
@@ -7,45 +7,46 @@ import (
 
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
-	"github.com/TrinityKnights/Backend/internal/service/event"
+	"github.com/TrinityKnights/Backend/internal/service/venue"
 	domainErrors "github.com/TrinityKnights/Backend/pkg/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
-type EventHandlerImpl struct {
+type VenueHandlerImpl struct {
 	Log          *logrus.Logger
-	EventService event.EventService
+	VenueService venue.VenueService
 }
 
-func NewEventHandler(log *logrus.Logger, eventService event.EventService) EventHandler {
-	return &EventHandlerImpl{
+func NewVenueHandler(log *logrus.Logger, venueService venue.VenueService) VenueHandler {
+	return &VenueHandlerImpl{
 		Log:          log,
-		EventService: eventService,
+		VenueService: venueService,
 	}
 }
 
-// @Summary Create a new event
-// @Description Create a new event with the provided details
-// @Tags events
+// CreateVenue function is a handler to create a new venue
+// @Summary Create a new venue
+// @Description Create a new venue with the provided details
+// @Tags venues
 // @Accept json
 // @Produce json
-// @Param request body model.CreateEventRequest true "Event details"
-// @Success 201 {object} model.Response[model.EventResponse]
+// @Param request body model.CreateVenueRequest true "Venue details"
+// @Success 201 {object} model.Response[model.VenueResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
 // @security ApiKeyAuth
-// @Router /events [post]
-func (h *EventHandlerImpl) CreateEvent(ctx echo.Context) error {
-	request := new(model.CreateEventRequest)
+// @Router /venues [post]
+func (h *VenueHandlerImpl) CreateVenue(ctx echo.Context) error {
+	request := new(model.CreateVenueRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, http.StatusBadRequest, err)
 	}
 
-	response, err := h.EventService.CreateEvent(ctx.Request().Context(), request)
+	response, err := h.VenueService.CreateVenue(ctx.Request().Context(), request)
 	if err != nil {
-		h.Log.Errorf("failed to create event: %v", err)
+		h.Log.Errorf("failed to create venue: %v", err)
 		if strings.Contains(err.Error(), "invalid request") {
 			return handler.HandleError(ctx, http.StatusBadRequest, err)
 		}
@@ -55,28 +56,29 @@ func (h *EventHandlerImpl) CreateEvent(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
 }
 
-// @Summary Update an existing event
-// @Description Update an existing event with the provided details
-// @Tags events
+// UpdateVenue function is a handler to update an existing venue
+// @Summary Update an existing venue
+// @Description Update an existing venue with the provided details
+// @Tags venues
 // @Accept json
 // @Produce json
-// @Param id path int true "Event ID"
-// @Param request body model.UpdateEventRequest true "Updated event details"
-// @Success 200 {object} model.Response[model.EventResponse]
+// @Param id path int true "Venue ID"
+// @Param request body model.UpdateVenueRequest true "Updated venue details"
+// @Success 200 {object} model.Response[model.VenueResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
 // @security ApiKeyAuth
-// @Router /events/{id} [put]
-func (h *EventHandlerImpl) UpdateEvent(ctx echo.Context) error {
-	request := new(model.UpdateEventRequest)
+// @Router /venues/{id} [put]
+func (h *VenueHandlerImpl) UpdateVenue(ctx echo.Context) error {
+	request := new(model.UpdateVenueRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, http.StatusBadRequest, err)
 	}
 
-	response, err := h.EventService.UpdateEvent(ctx.Request().Context(), request)
+	response, err := h.VenueService.UpdateVenue(ctx.Request().Context(), request)
 	if err != nil {
-		h.Log.Errorf("failed to update event: %v", err)
+		h.Log.Errorf("failed to update venue: %v", err)
 		switch {
 		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
 			return handler.HandleError(ctx, 400, err)
@@ -88,25 +90,27 @@ func (h *EventHandlerImpl) UpdateEvent(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
-// @Summary Get an event by ID
-// @Description Get details of a specific event by its ID
-// @Tags events
+// GetVenueByID function is a handler to get a venue by its ID
+// @Summary Get a venue by ID
+// @Description Get details of a specific venue by its ID
+// @Tags venues
 // @Produce json
-// @Param id path int true "Event ID"
-// @Success 200 {object} model.Response[model.EventResponse]
+// @Param id path int true "Venue ID"
+// @Success 200 {object} model.Response[model.VenueResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
-// @Router /events/{id} [get]
-func (h *EventHandlerImpl) GetEventByID(ctx echo.Context) error {
-	request := new(model.GetEventRequest)
+// @security ApiKeyAuth
+// @Router /venues/{id} [get]
+func (h *VenueHandlerImpl) GetVenueByID(ctx echo.Context) error {
+	request := new(model.GetVenueRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, http.StatusBadRequest, err)
 	}
 
-	response, err := h.EventService.GetEventByID(ctx.Request().Context(), request)
+	response, err := h.VenueService.GetVenueByID(ctx.Request().Context(), request)
 	if err != nil {
-		h.Log.Errorf("failed to get event by id: %v", err)
+		h.Log.Errorf("failed to get venue by id: %v", err)
 		switch err {
 		case domainErrors.ErrNotFound:
 			return handler.HandleError(ctx, http.StatusNotFound, err)
@@ -118,26 +122,28 @@ func (h *EventHandlerImpl) GetEventByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
-// @Summary Get all events
-// @Description Get a paginated list of all events
-// @Tags events
+// GetAllVenues function is a handler to get all venues
+// @Summary Get all venues
+// @Description Get a paginated list of all venues
+// @Tags venues
 // @Produce json
 // @Param page query int false "Page number"
 // @Param size query int false "Page size"
-// @Param sort query string false "Sort field" Enums(name, date, time)
+// @Param sort query string false "Sort field" Enums(name, capacity)
 // @Param order query string false "Sort order"
-// @Success 200 {object} model.Response[[]model.EventResponse]
+// @Success 200 {object} model.Response[[]model.VenueResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
-// @Router /events [get]
-func (h *EventHandlerImpl) GetAllEvents(ctx echo.Context) error {
-	request := new(model.EventsRequest)
+// @security ApiKeyAuth
+// @Router /venues [get]
+func (h *VenueHandlerImpl) GetAllVenues(ctx echo.Context) error {
+	request := new(model.VenuesRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, http.StatusBadRequest, err)
 	}
 
-	response, err := h.EventService.GetEvents(ctx.Request().Context(), request)
+	response, err := h.VenueService.GetVenues(ctx.Request().Context(), request)
 	if err != nil {
 		switch err {
 		case domainErrors.ErrValidation, domainErrors.ErrBadRequest:
@@ -152,33 +158,36 @@ func (h *EventHandlerImpl) GetAllEvents(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary Search events
-// @Description Search events with the provided query parameters
-// @Tags events
+// SearchVenues function is a handler to search venues
+// @Summary Search venues
+// @Description Search venues with the provided query parameters
+// @Tags venues
 // @Produce json
-// @Param name query string false "Event name"
-// @Param description query string false "Event description"
-// @Param date query string false "Event date"
-// @Param time query string false "Event time"
-// @Param venue_id query int false "Venue ID"
+// @Param name query string false "Venue name"
+// @Param address query string false "Venue address"
+// @Param capacity query int false "Venue capacity"
+// @Param city query string false "Venue city"
+// @Param state query string false "Venue state"
+// @Param zip query string false "Venue zip"
 // @Param page query int false "Page number"
 // @Param size query int false "Page size"
-// @Param sort query string false "Sort field" Enums(name, date, time)
+// @Param sort query string false "Sort field" Enums(name, capacity)
 // @Param order query string false "Sort order"
-// @Success 200 {object} model.Response[[]model.EventResponse]
+// @Success 200 {object} model.Response[[]model.VenueResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
-// @Router /events/search [get]
-func (h *EventHandlerImpl) SearchEvents(ctx echo.Context) error {
-	request := new(model.EventSearchRequest)
+// @security ApiKeyAuth
+// @Router /venues/search [get]
+func (h *VenueHandlerImpl) SearchVenues(ctx echo.Context) error {
+	request := new(model.VenueSearchRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, http.StatusBadRequest, err)
 	}
 
-	response, err := h.EventService.SearchEvents(ctx.Request().Context(), request)
+	response, err := h.VenueService.SearchVenues(ctx.Request().Context(), request)
 	if err != nil {
-		h.Log.Errorf("failed to search events: %v", err)
+		h.Log.Errorf("failed to search venues: %v", err)
 		switch {
 		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
 			return handler.HandleError(ctx, 400, err)

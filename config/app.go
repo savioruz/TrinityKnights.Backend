@@ -2,14 +2,17 @@ package config
 
 import (
 	"github.com/TrinityKnights/Backend/internal/builder"
-	handlerUser "github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	handlerEvent "github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
+	handlerUser "github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
+	handlerVenue "github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/middleware"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
-	repositoryUser "github.com/TrinityKnights/Backend/internal/repository/user"
 	repositoryEvent "github.com/TrinityKnights/Backend/internal/repository/event"
-	serviceUser "github.com/TrinityKnights/Backend/internal/service/user"
+	repositoryUser "github.com/TrinityKnights/Backend/internal/repository/user"
+	repositoryVenue "github.com/TrinityKnights/Backend/internal/repository/venue"
 	serviceEvent "github.com/TrinityKnights/Backend/internal/service/event"
+	serviceUser "github.com/TrinityKnights/Backend/internal/service/user"
+	serviceVenue "github.com/TrinityKnights/Backend/internal/service/venue"
 	"github.com/TrinityKnights/Backend/pkg/cache"
 	"github.com/TrinityKnights/Backend/pkg/jwt"
 	"github.com/go-playground/validator/v10"
@@ -25,6 +28,7 @@ type BootstrapConfig struct {
 	Log      *logrus.Logger
 	Validate *validator.Validate
 	JWT      *jwt.JWTConfig
+	Midtrans MidtransConfig
 }
 
 func Bootstrap(config *BootstrapConfig) error {
@@ -33,16 +37,18 @@ func Bootstrap(config *BootstrapConfig) error {
 
 	// Initialize repository
 	userRepository := repositoryUser.NewUserRepository(config.DB, config.Log)
-	eventRepository := repositoryEvent.NewEventRepository(config.DB)
+	venueRepository := repositoryVenue.NewVenueRepository(config.DB, config.Log)
+	eventRepository := repositoryEvent.NewEventRepository(config.DB, config.Log)
 
 	// Initialize service
 	userService := serviceUser.NewUserServiceImpl(config.DB, config.Log, config.Validate, userRepository, jwtService)
-	eventService := serviceEvent.NewEventServiceImpl(config.DB, config.Log, config.Validate, eventRepository, jwtService)
-
+	venueService := serviceVenue.NewVenueServiceImpl(config.DB, config.Cache, config.Log, config.Validate, venueRepository)
+	eventService := serviceEvent.NewEventServiceImpl(config.DB, config.Cache, config.Log, config.Validate, eventRepository)
 
 	// Initialize handler
 	userHandler := handlerUser.NewUserHandler(config.Log, userService)
-	eventHandler := handlerEvent.NewEventHandler(eventService)
+	venueHandler := handlerVenue.NewVenueHandler(config.Log, venueService)
+	eventHandler := handlerEvent.NewEventHandler(config.Log, eventService)
 
 	// Initialize graphql
 
@@ -51,16 +57,18 @@ func Bootstrap(config *BootstrapConfig) error {
 
 	// Initialize route
 	routeConfig := route.Config{
-		App:         config.App,
-		UserHandler: userHandler,
-		EventHandler: eventHandler,  
+		App:          config.App,
+		UserHandler:  userHandler,
+		VenueHandler: venueHandler.(*handlerVenue.VenueHandlerImpl),
+		EventHandler: eventHandler.(*handlerEvent.EventHandlerImpl),
 	}
 
 	// Build routes
 	b := builder.Config{
 		App:            config.App,
 		UserHandler:    userHandler,
-		EventHandler:   eventHandler,
+		VenueHandler:   venueHandler.(*handlerVenue.VenueHandlerImpl),
+		EventHandler:   eventHandler.(*handlerEvent.EventHandlerImpl),
 		AuthMiddleware: authMiddleware,
 		Routes:         &routeConfig,
 	}
