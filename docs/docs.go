@@ -25,11 +25,6 @@ const docTemplate = `{
     "paths": {
         "/events": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Get a paginated list of all events",
                 "produces": [
                     "application/json"
@@ -142,11 +137,6 @@ const docTemplate = `{
         },
         "/events/search": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Search events with the provided query parameters",
                 "produces": [
                     "application/json"
@@ -240,11 +230,6 @@ const docTemplate = `{
         },
         "/events/{id}": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Get details of a specific event by its ID",
                 "produces": [
                     "application/json"
@@ -572,6 +557,11 @@ const docTemplate = `{
         },
         "/payments": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Create a new payment for an order",
                 "consumes": [
                     "application/json"
