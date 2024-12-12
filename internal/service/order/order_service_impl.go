@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,9 +10,9 @@ import (
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
 	"github.com/TrinityKnights/Backend/internal/repository/order"
-	"github.com/TrinityKnights/Backend/internal/service/payment"
 	"github.com/TrinityKnights/Backend/pkg/cache"
 	domainErrors "github.com/TrinityKnights/Backend/pkg/errors"
+	"github.com/TrinityKnights/Backend/pkg/helper"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -23,23 +24,29 @@ type OrderServiceImpl struct {
 	Log             *logrus.Logger
 	Validate        *validator.Validate
 	OrderRepository order.OrderRepository
-	PaymentService  payment.PaymentService
+	helper          *helper.ContextHelper
 }
 
-func NewOrderServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository, paymentService payment.PaymentService) *OrderServiceImpl {
+func NewOrderServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository) *OrderServiceImpl {
 	return &OrderServiceImpl{
 		DB:              db,
 		Cache:           cache,
 		Log:             log,
 		Validate:        validate,
 		OrderRepository: orderRepository,
-		PaymentService:  paymentService,
+		helper:          helper.NewContextHelper(),
 	}
 }
 
 func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.OrderTicketRequest) (*model.OrderResponse, error) {
 	if err := s.Validate.Struct(request); err != nil {
 		return nil, domainErrors.ErrValidation
+	}
+
+	// Get user ID from JWT claims
+	claims, err := s.helper.GetJWTClaims(ctx)
+	if err != nil {
+		return nil, domainErrors.ErrUnauthorized
 	}
 
 	tx := s.DB.WithContext(ctx).Begin()
@@ -55,11 +62,11 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Create order first
+	// Create order
 	order := &entity.Order{
-		UserID:     request.UserID,
+		UserID:     claims.UserID,
 		Date:       time.Now(),
-		TotalPrice: float64(request.Quantity) * 10.0, // @TODO: Change to event price
+		TotalPrice: float64(request.Quantity) * 10.0, // @TODO: Change to ticket price
 	}
 
 	if err := s.OrderRepository.Create(tx, order); err != nil {
@@ -70,34 +77,17 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	// Create tickets
 	for i := 0; i < request.Quantity; i++ {
 		ticket := &entity.Ticket{
-			EventID: request.EventID,
-			OrderID: order.ID,
+			EventID:    request.EventID,
+			OrderID:    order.ID,
+			Price:      10.0, // @TODO: Change to ticket price
+			Type:       "regular",
+			SeatNumber: request.SeatNumber,
 		}
 
 		if err := tx.Create(ticket).Error; err != nil {
 			s.Log.Errorf("failed to create ticket: %v", err)
 			return nil, domainErrors.ErrInternalServer
 		}
-	}
-
-	// Initialize payment
-	paymentReq := &model.PaymentRequest{
-		OrderID:       order.ID,
-		Amount:        order.TotalPrice,
-		PaymentMethod: request.PaymentMethod,
-	}
-
-	paymentResp, err := s.PaymentService.CreatePayment(ctx, paymentReq)
-	if err != nil {
-		s.Log.Errorf("failed to create payment: %v", err)
-		return nil, domainErrors.ErrInternalServer
-	}
-
-	// Update order with payment ID
-	order.PaymentID = paymentResp.ID
-	if err := s.OrderRepository.Update(tx, order); err != nil {
-		s.Log.Errorf("failed to update order: %v", err)
-		return nil, domainErrors.ErrInternalServer
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -108,52 +98,42 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	return converter.OrderEntityToResponse(order), nil
 }
 
-func (s *OrderServiceImpl) UpdateOrder(ctx context.Context, request *model.UpdateOrderRequest) (*model.OrderResponse, error) {
-	if err := s.Validate.Struct(request); err != nil {
-		return nil, domainErrors.ErrValidation
-	}
-
-	tx := s.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	var order entity.Order
-	if err := s.OrderRepository.GetByID(tx, &order, request.ID); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, domainErrors.ErrNotFound
-		}
-		s.Log.Errorf("failed to get order: %v", err)
-		return nil, domainErrors.ErrInternalServer
-	}
-
-	order.PaymentID = request.PaymentID
-
-	if err := s.OrderRepository.Update(tx, &order); err != nil {
-		s.Log.Errorf("failed to update order: %v", err)
-		return nil, domainErrors.ErrInternalServer
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		return nil, domainErrors.ErrInternalServer
-	}
-
-	return converter.OrderEntityToResponse(&order), nil
-}
-
 func (s *OrderServiceImpl) GetOrderByID(ctx context.Context, request *model.GetOrderRequest) (*model.OrderResponse, error) {
 	if err := s.Validate.Struct(request); err != nil {
 		return nil, domainErrors.ErrValidation
 	}
 
-	var order entity.Order
-	if err := s.OrderRepository.GetByID(s.DB.WithContext(ctx), &order, request.ID); err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, domainErrors.ErrNotFound
-		}
-		s.Log.Errorf("failed to get order: %v", err)
-		return nil, domainErrors.ErrInternalServer
+	// Try to get from cache first
+	key := fmt.Sprintf("order:get:id:%d", request.ID)
+	var data *model.OrderResponse
+	err := s.Cache.Get(key, &data)
+	if err != nil && !errors.Is(err, cache.ErrCacheMiss) {
+		s.Log.Errorf("failed to get cache: %v", err)
 	}
 
-	return converter.OrderEntityToResponse(&order), nil
+	if data == nil {
+		tx := s.DB.WithContext(ctx)
+
+		var order entity.Order
+		if err := s.OrderRepository.GetByIDWithDetails(tx, &order, request.ID); err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, domainErrors.ErrNotFound
+			}
+			s.Log.Errorf("failed to get order: %v", err)
+			return nil, domainErrors.ErrInternalServer
+		}
+
+		response := converter.OrderEntityToResponse(&order)
+
+		// Cache the response
+		if err := s.Cache.Set(key, response, 5*time.Minute); err != nil {
+			s.Log.Errorf("failed to set cache: %v", err)
+		}
+
+		return response, nil
+	}
+
+	return data, nil
 }
 
 func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersRequest) (*model.Response[[]*model.OrderResponse], error) {
@@ -166,6 +146,14 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 	}
 	if request.Page <= 0 {
 		request.Page = 1
+	}
+
+	// Try to get from cache first
+	cacheKey := fmt.Sprintf("order:get:page:%d:size:%d:sort:%s:order:%s",
+		request.Page, request.Size, request.Sort, request.Order)
+	var cacheResponse model.Response[[]*model.OrderResponse]
+	if err := s.Cache.Get(cacheKey, &cacheResponse); err == nil {
+		return &cacheResponse, nil
 	}
 
 	var orders []entity.Order
@@ -203,7 +191,7 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 
 	// Get paginated results
 	offset := (request.Page - 1) * request.Size
-	if err := query.Offset(offset).Limit(request.Size).Find(&orders).Error; err != nil {
+	if err := query.Preload("Tickets").Offset(offset).Limit(request.Size).Find(&orders).Error; err != nil {
 		s.Log.Errorf("failed to get orders: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
@@ -212,5 +200,12 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 		return nil, domainErrors.ErrNotFound
 	}
 
-	return converter.OrdersToPaginatedResponse(orders, totalItems, request.Page, request.Size), nil
+	response := converter.OrdersToPaginatedResponse(orders, totalItems, request.Page, request.Size)
+
+	// Cache the response
+	if err := s.Cache.Set(cacheKey, response, 5*time.Minute); err != nil {
+		s.Log.Errorf("failed to cache response: %v", err)
+	}
+
+	return response, nil
 }

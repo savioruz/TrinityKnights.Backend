@@ -22,3 +22,18 @@ func NewOrderRepository(db *gorm.DB, log *logrus.Logger) *OrderRepositoryImpl {
 func (r *OrderRepositoryImpl) GetByID(db *gorm.DB, order *entity.Order, id uint) error {
 	return db.Where("id = ?", id).Take(&order).Error
 }
+
+func (r *OrderRepositoryImpl) GetByIDWithDetails(db *gorm.DB, order *entity.Order, id uint) error {
+	return db.Preload("Tickets").
+		Preload("User").
+		Preload("Payment").
+		Where("orders.id = ?", id).
+		Take(&order).Error
+}
+
+func (r *OrderRepositoryImpl) GetAllWithDetails(db *gorm.DB, orders *[]entity.Order) error {
+	return db.Preload("Tickets").
+		Preload("User").
+		Preload("Payment").
+		Find(&orders).Error
+}
