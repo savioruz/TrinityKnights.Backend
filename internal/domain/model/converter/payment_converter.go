@@ -7,10 +7,8 @@ import (
 
 func PaymentEntityToResponse(payment *entity.Payment) *model.PaymentResponse {
 	return &model.PaymentResponse{
-		ID:            payment.ID,
-		OrderID:       payment.OrderID,
-		Method:        payment.Method,
-		TransactionID: payment.TransactionID,
+		ID:      payment.ID,
+		OrderID: payment.OrderID,
 	}
 }
 
