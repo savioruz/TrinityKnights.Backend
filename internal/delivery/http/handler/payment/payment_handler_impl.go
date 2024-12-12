@@ -33,6 +33,7 @@ func NewPaymentHandler(log *logrus.Logger, paymentService payment.PaymentService
 // @Success 201 {object} model.Response[model.PaymentResponse]
 // @Failure 400 {object} model.Error
 // @Failure 500 {object} model.Error
+// @security ApiKeyAuth
 // @Router /payments [post]
 func (h *PaymentHandlerImpl) CreatePayment(ctx echo.Context) error {
 	request := new(model.PaymentRequest)

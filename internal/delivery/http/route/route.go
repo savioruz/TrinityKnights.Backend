@@ -43,6 +43,11 @@ func (c Config) PublicRoute() []route.Route {
 			Path:    "/users/refresh",
 			Handler: c.UserHandler.RefreshToken,
 		},
+		{
+			Method:  echo.POST,
+			Path:    "/payments/callback",
+			Handler: c.PaymentHandler.HandleCallback,
+		},
 	}
 }
 
@@ -132,11 +137,6 @@ func (c Config) PrivateRoute() []route.Route {
 			Method:  echo.POST,
 			Path:    "/payments",
 			Handler: c.PaymentHandler.CreatePayment,
-		},
-		{
-			Method:  echo.POST,
-			Path:    "/payments/callback",
-			Handler: c.PaymentHandler.HandleCallback,
 		},
 	}
 }
