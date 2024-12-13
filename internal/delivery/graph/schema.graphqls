@@ -1,0 +1,31 @@
+# Define custom scalar types if needed
+scalar DateTime
+
+# Input types for mutations
+input UpdateUserInput {
+  email: String
+  password: String
+  name: String
+}
+
+# Response types
+type UserResponse {
+  id: ID!
+  name: String!
+  email: String!
+  role: String!
+  status: Boolean!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+# Queries and Mutations
+type Query {
+  # Get current user's profile
+  profile: UserResponse!
+}
+
+type Mutation {
+  # Update user profile
+  updateUser(input: UpdateUserInput!): UserResponse!
+}

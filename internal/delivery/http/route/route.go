@@ -1,6 +1,7 @@
 package route
 
 import (
+	graphql "github.com/TrinityKnights/Backend/internal/delivery/graph/handler"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
@@ -19,6 +20,7 @@ type RouteConfig interface {
 
 type Config struct {
 	App            *echo.Echo
+	GraphQLHandler *graphql.GraphQLHandler
 	UserHandler    *user.UserHandlerImpl
 	VenueHandler   *venue.VenueHandlerImpl
 	EventHandler   *event.EventHandlerImpl

@@ -2,6 +2,8 @@ package config
 
 import (
 	"github.com/TrinityKnights/Backend/internal/builder"
+	graphql "github.com/TrinityKnights/Backend/internal/delivery/graph/handler"
+	resolvers "github.com/TrinityKnights/Backend/internal/delivery/graph/resolvers"
 	handlerEvent "github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	handlerOrder "github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
 	handlerUser "github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
@@ -55,23 +57,28 @@ func Bootstrap(config *BootstrapConfig) error {
 	venueHandler := handlerVenue.NewVenueHandler(config.Log, venueService)
 	eventHandler := handlerEvent.NewEventHandler(config.Log, eventService)
 	orderHandler := handlerOrder.NewOrderHandler(config.Log, orderService)
+
 	// Initialize graphql
+	resolver := resolvers.NewResolver(userService)
+	graphqlHandler := graphql.NewGraphQLHandler(resolver)
 
 	// Initialize middleware
 	authMiddleware := middleware.AuthMiddleware(jwtService)
 
 	// Initialize route
 	routeConfig := route.Config{
-		App:          config.App,
-		UserHandler:  userHandler,
-		VenueHandler: venueHandler.(*handlerVenue.VenueHandlerImpl),
-		EventHandler: eventHandler.(*handlerEvent.EventHandlerImpl),
-		OrderHandler: orderHandler.(*handlerOrder.OrderHandlerImpl),
+		App:            config.App,
+		GraphQLHandler: graphqlHandler,
+		UserHandler:    userHandler,
+		VenueHandler:   venueHandler.(*handlerVenue.VenueHandlerImpl),
+		EventHandler:   eventHandler.(*handlerEvent.EventHandlerImpl),
+		OrderHandler:   orderHandler.(*handlerOrder.OrderHandlerImpl),
 	}
 
 	// Build routes
 	b := builder.Config{
 		App:            config.App,
+		GraphQLHandler: graphqlHandler,
 		UserHandler:    userHandler,
 		VenueHandler:   venueHandler.(*handlerVenue.VenueHandlerImpl),
 		EventHandler:   eventHandler.(*handlerEvent.EventHandlerImpl),
