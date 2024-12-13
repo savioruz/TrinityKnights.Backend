@@ -95,3 +95,25 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  DateTime:
+    model:
+      - github.com/99designs/gqlgen/graphql.Time
+  UserResponse:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.UserResponse
+  TokenResponse:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.TokenResponse
+  RegisterInput:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.RegisterRequest
+  LoginInput:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.LoginRequest
+  UpdateUserInput:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.UpdateRequest
+  RefreshTokenInput:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.RefreshTokenRequest
+      
