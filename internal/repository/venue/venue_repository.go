@@ -10,5 +10,5 @@ import (
 type VenueRepository interface {
 	repository.Repository[entity.Venue]
 	GetByID(db *gorm.DB, venue *entity.Venue, id uint) error
-	GetPaginated(db *gorm.DB, venues *[]entity.Venue, opts model.VenueQueryOptions) (int64, error)
+	GetPaginated(db *gorm.DB, venues *[]entity.Venue, opts *model.VenueQueryOptions) (int64, error)
 }

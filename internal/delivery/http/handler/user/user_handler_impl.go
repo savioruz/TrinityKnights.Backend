@@ -15,10 +15,10 @@ type UserHandlerImpl struct {
 	User user.UserService
 }
 
-func NewUserHandler(log *logrus.Logger, user user.UserService) *UserHandlerImpl {
+func NewUserHandler(log *logrus.Logger, userService user.UserService) *UserHandlerImpl {
 	return &UserHandlerImpl{
 		Log:  log,
-		User: user,
+		User: userService,
 	}
 }
 

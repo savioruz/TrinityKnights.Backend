@@ -27,7 +27,7 @@ func (r *VenueRepositoryImpl) GetByID(db *gorm.DB, venue *entity.Venue, id uint)
 	return db.Where("id = ?", id).Take(&venue).Error
 }
 
-func (r *VenueRepositoryImpl) GetPaginated(db *gorm.DB, venues *[]entity.Venue, opts model.VenueQueryOptions) (int64, error) {
+func (r *VenueRepositoryImpl) GetPaginated(db *gorm.DB, venues *[]entity.Venue, opts *model.VenueQueryOptions) (int64, error) {
 	if opts.Page <= 0 {
 		opts.Page = 1
 	}
@@ -52,7 +52,7 @@ func (r *VenueRepositoryImpl) GetPaginated(db *gorm.DB, venues *[]entity.Venue, 
 	return totalCount, nil
 }
 
-func (r *VenueRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts model.VenueQueryOptions) *gorm.DB {
+func (r *VenueRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts *model.VenueQueryOptions) *gorm.DB {
 	query := db.Model(&entity.Venue{})
 
 	if opts.Name != nil && *opts.Name != "" {

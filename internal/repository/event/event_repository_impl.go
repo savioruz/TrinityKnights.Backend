@@ -1,6 +1,7 @@
 package event
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -26,7 +27,7 @@ func NewEventRepository(db *gorm.DB, log *logrus.Logger) *EventRepositoryImpl {
 func (r *EventRepositoryImpl) GetByID(db *gorm.DB, event *entity.Event, id uint) error {
 	result := db.Where("id = ?", id).First(event)
 	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return gorm.ErrRecordNotFound
 		}
 		return result.Error
@@ -34,7 +35,7 @@ func (r *EventRepositoryImpl) GetByID(db *gorm.DB, event *entity.Event, id uint)
 	return nil
 }
 
-func (r *EventRepositoryImpl) GetPaginated(db *gorm.DB, events *[]entity.Event, opts model.EventQueryOptions) (int64, error) {
+func (r *EventRepositoryImpl) GetPaginated(db *gorm.DB, events *[]entity.Event, opts *model.EventQueryOptions) (int64, error) {
 	if opts.Page <= 0 {
 		opts.Page = 1
 	}
@@ -59,7 +60,7 @@ func (r *EventRepositoryImpl) GetPaginated(db *gorm.DB, events *[]entity.Event, 
 	return totalCount, nil
 }
 
-func (r *EventRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts model.EventQueryOptions) *gorm.DB {
+func (r *EventRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts *model.EventQueryOptions) *gorm.DB {
 	query := db.Model(&entity.Event{})
 
 	if opts.Name != nil && *opts.Name != "" {
@@ -81,7 +82,7 @@ func (r *EventRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts model.EventQ
 	// Add sorting
 	if opts.Sort != "" {
 		direction := "ASC"
-		if strings.ToUpper(opts.Order) == "DESC" {
+		if strings.EqualFold(opts.Order, "DESC") {
 			direction = "DESC"
 		}
 		query = query.Order(fmt.Sprintf("%s %s", opts.Sort, direction))

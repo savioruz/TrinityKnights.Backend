@@ -1,8 +1,8 @@
 package mock
 
 import (
-	"github.com/stretchr/testify/mock"
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
+	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 )
 

@@ -23,13 +23,13 @@ type PaymentServiceImpl struct {
 	Snap     snap.Client
 }
 
-func NewPaymentServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, snap snap.Client) *PaymentServiceImpl {
+func NewPaymentServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, snapClient snap.Client) *PaymentServiceImpl {
 	return &PaymentServiceImpl{
 		DB:       db,
-		Cache:    cache,
+		Cache:    cacheImpl,
 		Log:      log,
 		Validate: validate,
-		Snap:     snap,
+		Snap:     snapClient,
 	}
 }
 
