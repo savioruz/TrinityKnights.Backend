@@ -4,17 +4,21 @@ go 1.23.3
 
 require (
 	github.com/99designs/gqlgen v0.17.57
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.13.0
 	github.com/midtrans/midtrans-go v1.3.8
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
+	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/echo-swagger v1.4.1
 	github.com/swaggo/swag v1.16.4
 	golang.org/x/crypto v0.31.0
+	gorm.io/driver/mysql v1.5.7
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
 )
@@ -24,6 +28,7 @@ require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -34,6 +39,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
@@ -50,6 +56,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
@@ -58,6 +65,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/swaggo/files/v2 v2.0.1 // indirect
 	github.com/urfave/cli/v2 v2.27.5 // indirect
