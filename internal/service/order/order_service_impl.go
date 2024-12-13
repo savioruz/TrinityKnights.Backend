@@ -27,10 +27,10 @@ type OrderServiceImpl struct {
 	helper          *helper.ContextHelper
 }
 
-func NewOrderServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository) *OrderServiceImpl {
+func NewOrderServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository) *OrderServiceImpl {
 	return &OrderServiceImpl{
 		DB:              db,
-		Cache:           cache,
+		Cache:           cacheImpl,
 		Log:             log,
 		Validate:        validate,
 		OrderRepository: orderRepository,
@@ -62,15 +62,15 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Create order
-	order := &entity.Order{
+	// Create data order
+	data := &entity.Order{
 		UserID:     claims.UserID,
 		Date:       time.Now(),
 		TotalPrice: float64(request.Quantity) * 10.0, // @TODO: Change to ticket price
 	}
 
-	if err := s.OrderRepository.Create(tx, order); err != nil {
-		s.Log.Errorf("failed to create order: %v", err)
+	if err := s.OrderRepository.Create(tx, data); err != nil {
+		s.Log.Errorf("failed to create data: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
 
@@ -78,7 +78,7 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	for i := 0; i < request.Quantity; i++ {
 		ticket := &entity.Ticket{
 			EventID:    request.EventID,
-			OrderID:    order.ID,
+			OrderID:    data.ID,
 			Price:      10.0, // @TODO: Change to ticket price
 			Type:       "regular",
 			SeatNumber: request.SeatNumber,
@@ -95,7 +95,7 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	return converter.OrderEntityToResponse(order), nil
+	return converter.OrderEntityToResponse(data), nil
 }
 
 func (s *OrderServiceImpl) GetOrderByID(ctx context.Context, request *model.GetOrderRequest) (*model.OrderResponse, error) {
@@ -114,8 +114,8 @@ func (s *OrderServiceImpl) GetOrderByID(ctx context.Context, request *model.GetO
 	if data == nil {
 		tx := s.DB.WithContext(ctx)
 
-		var order entity.Order
-		if err := s.OrderRepository.GetByIDWithDetails(tx, &order, request.ID); err != nil {
+		var dataOrder entity.Order
+		if err := s.OrderRepository.GetByIDWithDetails(tx, &dataOrder, request.ID); err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, domainErrors.ErrNotFound
 			}
@@ -123,7 +123,7 @@ func (s *OrderServiceImpl) GetOrderByID(ctx context.Context, request *model.GetO
 			return nil, domainErrors.ErrInternalServer
 		}
 
-		response := converter.OrderEntityToResponse(&order)
+		response := converter.OrderEntityToResponse(&dataOrder)
 
 		// Cache the response
 		if err := s.Cache.Set(key, response, 5*time.Minute); err != nil {

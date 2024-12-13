@@ -13,7 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 func TestRepositoryImpl_Create(t *testing.T) {
 	// Create SQL mock
 	db, mock, err := sqlmock.New()
@@ -134,7 +133,6 @@ func TestRepositoryImpl_Delete(t *testing.T) {
 	mock.ExpectationsWereMet()
 }
 
-
 func TestUserRepository_GetFirst(t *testing.T) {
 	// Create SQL mock
 	db, mock, err := sqlmock.New()
@@ -160,13 +158,13 @@ func TestUserRepository_GetFirst(t *testing.T) {
 		WithArgs(1).
 		WillReturnRows(rows)
 
-	user := &entity.User{}
-	err = repo.GetFirst(gormDB, user)
+	data := &entity.User{}
+	err = repo.GetFirst(gormDB, data)
 
 	// Assertions
 	assert.NoError(t, err)
-	assert.Equal(t, expectedUser.ID, user.ID)
-	assert.Equal(t, expectedUser.Email, user.Email)
+	assert.Equal(t, expectedUser.ID, data.ID)
+	assert.Equal(t, expectedUser.Email, data.Email)
 	mock.ExpectationsWereMet()
 }
 
@@ -197,13 +195,13 @@ func TestUserRepository_GetByID(t *testing.T) {
 		WillReturnRows(rows)
 
 	// Call the method
-	user := &entity.User{}
-	err = repo.GetByID(gormDB, user, "123")
+	data := &entity.User{}
+	err = repo.GetByID(gormDB, data, "123")
 
 	// Assertions
 	assert.NoError(t, err)
-	assert.Equal(t, expectedUser.ID, user.ID)
-	assert.Equal(t, expectedUser.Email, user.Email)
+	assert.Equal(t, expectedUser.ID, data.ID)
+	assert.Equal(t, expectedUser.Email, data.Email)
 	mock.ExpectationsWereMet()
 }
 
@@ -224,7 +222,7 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 	logger := logrus.New()
 	repo := user.NewUserRepository(gormDB, logger)
 
-	// Define expected user data
+	// Define expected data data
 	expectedUser := &entity.User{ID: "123", Email: "test@example.com"}
 	rows := sqlmock.NewRows([]string{"id", "email"}).
 		AddRow(expectedUser.ID, expectedUser.Email)
@@ -235,13 +233,13 @@ func TestUserRepository_GetByEmail(t *testing.T) {
 		WillReturnRows(rows)
 
 	// Call the method
-	user := &entity.User{}
-	err = repo.GetByEmail(gormDB, user, "test@example.com")
+	data := &entity.User{}
+	err = repo.GetByEmail(gormDB, data, "test@example.com")
 
 	// Assertions
 	assert.NoError(t, err)
-	assert.Equal(t, expectedUser.ID, user.ID)
-	assert.Equal(t, expectedUser.Email, user.Email)
+	assert.Equal(t, expectedUser.ID, data.ID)
+	assert.Equal(t, expectedUser.Email, data.Email)
 	mock.ExpectationsWereMet()
 }
 

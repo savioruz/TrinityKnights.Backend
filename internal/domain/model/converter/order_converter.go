@@ -15,7 +15,8 @@ func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
 
 	if len(order.Tickets) > 0 {
 		response.Tickets = make([]model.TicketResponse, len(order.Tickets))
-		for i, ticket := range order.Tickets {
+		for i := range order.Tickets {
+			ticket := &order.Tickets[i]
 			response.Tickets[i] = model.TicketResponse{
 				ID:         ticket.ID,
 				EventID:    ticket.EventID,
