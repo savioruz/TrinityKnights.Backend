@@ -35,3 +35,9 @@ type TokenResponse struct {
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
+
+type ResetPasswordRequest struct {
+	Email       string `json:"email" validate:"required,email,lte=100"`
+	Password    string `json:"password" validate:"required,min=8,lte=255"`
+	NewPassword string `json:"new_password" validate:"required,min=8,lte=255"`
+}
