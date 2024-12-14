@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"errors"
+	"net/http"
+
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
@@ -14,7 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type UserServiceImpl struct {
@@ -224,4 +225,8 @@ func (s *UserServiceImpl) RefreshToken(ctx context.Context, request *model.Refre
 	}
 
 	return converter.LoginToTokenResponse(accessToken, refreshToken), nil
+}
+
+func (s *UserServiceImpl) ResetPasswordRequest(ctx context.Context, request *model.ResetPasswordRequest) error {
+	return nil
 }
