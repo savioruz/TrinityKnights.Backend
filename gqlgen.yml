@@ -116,4 +116,10 @@ models:
   RefreshTokenInput:
     model:
       - github.com/TrinityKnights/Backend/internal/domain/model.RefreshTokenRequest
+  EventResponse:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.EventResponse
+  VenueResponse:
+    model:
+      - github.com/TrinityKnights/Backend/internal/domain/model.VenueResponse
       

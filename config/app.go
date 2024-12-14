@@ -59,8 +59,8 @@ func Bootstrap(config *BootstrapConfig) error {
 	orderHandler := handlerOrder.NewOrderHandler(config.Log, orderService)
 
 	// Initialize graphql
-	resolver := resolvers.NewResolver(userService)
-	graphqlHandler := graphql.NewGraphQLHandler(resolver)
+	resolver := resolvers.NewResolver(userService, eventService, venueService)
+	graphqlHandler := graphql.NewGraphQLHandler(resolver, jwtService)
 
 	// Initialize middleware
 	authMiddleware := middleware.AuthMiddleware(jwtService)

@@ -43,10 +43,10 @@ func (c *Config) BuildRoutes() {
 		privateGroup.Add(r.Method, r.Path, r.Handler)
 	}
 
-	// GraphQL routes with auth middleware
-	graphqlGroup := g.Group("/graphql")
-	graphqlGroup.Use(c.AuthMiddleware)
-	graphqlGroup.POST("", c.GraphQLHandler.GraphQLHandler)
+	// GraphQL routes
+	privateGroup.POST("/graphql", c.GraphQLHandler.GraphQLHandler)
+
+	// GraphQL Playground (you might want to restrict this in production)
 	c.App.GET("/playground", c.GraphQLHandler.PlaygroundHandler)
 
 	// Swagger routes

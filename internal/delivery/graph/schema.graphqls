@@ -1,14 +1,29 @@
+directive @auth on FIELD_DEFINITION
+directive @public on FIELD_DEFINITION
+
 # Define custom scalar types if needed
 scalar DateTime
+scalar Time
 
-# Input types for mutations
-input UpdateUserInput {
-  email: String
-  password: String
-  name: String
+# Common types
+type Error {
+  code: Int!
+  message: String!
 }
 
-# Response types
+type PageMetadata {
+  page: Int!
+  size: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type Response {
+  error: Error
+  paging: PageMetadata
+}
+
+# User types
 type UserResponse {
   id: ID!
   name: String!
@@ -19,13 +34,108 @@ type UserResponse {
   updatedAt: DateTime
 }
 
-# Queries and Mutations
+input UpdateUserInput {
+  email: String
+  password: String
+  name: String
+}
+
+# Event types
+type EventResponse {
+  id: Int!
+  name: String!
+  description: String!
+  date: DateTime!
+  time: Time!
+  venueId: Int!
+  venue: VenueResponse
+}
+
+type EventsResponse {
+  data: [EventResponse!]
+  paging: PageMetadata
+  error: Error
+}
+
+input UpdateEventInput {
+  name: String
+  description: String
+  date: String
+  time: String
+  venueId: Int
+}
+
+# Venue types
+type VenueResponse {
+  id: Int!
+  name: String!
+  address: String!
+  capacity: Int!
+  city: String!
+  state: String!
+  zip: String!
+}
+
+type VenuesResponse {
+  data: [VenueResponse!]
+  paging: PageMetadata
+  error: Error
+}
+
+input UpdateVenueInput {
+  name: String
+  address: String
+  capacity: Int
+  city: String
+  state: String
+  zip: String
+}
+
 type Query {
-  # Get current user's profile
-  profile: UserResponse!
+  # Public queries
+  event(id: Int!): EventResponse! @public
+  events(page: Int, size: Int, sort: String, order: String): EventsResponse! @public
+  searchEvents(name: String, description: String, date: String, time: String, venueId: Int, page: Int, size: Int, sort: String, order: String): EventsResponse! @public
+
+  # Private queries (require authentication)
+  profile: UserResponse! @auth
+
+  # Venue queries
+  venue(id: Int!): VenueResponse! @auth
+  venues(page: Int = 1, size: Int = 10, sort: String, order: String): VenuesResponse! @auth
+  searchVenues(
+    name: String
+    address: String
+    capacity: Int
+    city: String
+    state: String
+    zip: String
+    page: Int = 1
+    size: Int = 10
+    sort: String
+    order: String
+  ): VenuesResponse! @auth
 }
 
 type Mutation {
-  # Update user profile
-  updateUser(input: UpdateUserInput!): UserResponse!
+  # All mutations require authentication
+  createEvent(
+    name: String!
+    description: String!
+    date: String!
+    time: String!
+    venueId: Int!
+  ): EventResponse! @auth
+  updateEvent(id: Int!, input: UpdateEventInput!): EventResponse! @auth
+  
+  # Venue mutations
+  createVenue(
+    name: String!
+    address: String!
+    capacity: Int!
+    city: String!
+    state: String!
+    zip: String!
+  ): VenueResponse! @auth
+  updateVenue(id: Int!, input: UpdateVenueInput!): VenueResponse! @auth
 }
