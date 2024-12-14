@@ -2,8 +2,58 @@
 
 package graphmodel
 
+import (
+	"github.com/TrinityKnights/Backend/internal/domain/model"
+)
+
+type Error struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type EventsResponse struct {
+	Data   []*model.EventResponse `json:"data,omitempty"`
+	Paging *PageMetadata          `json:"paging,omitempty"`
+	Error  *Error                 `json:"error,omitempty"`
+}
+
 type Mutation struct {
 }
 
+type PageMetadata struct {
+	Page       int `json:"page"`
+	Size       int `json:"size"`
+	TotalItems int `json:"totalItems"`
+	TotalPages int `json:"totalPages"`
+}
+
 type Query struct {
+}
+
+type Response struct {
+	Error  *Error        `json:"error,omitempty"`
+	Paging *PageMetadata `json:"paging,omitempty"`
+}
+
+type UpdateEventInput struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Date        *string `json:"date,omitempty"`
+	Time        *string `json:"time,omitempty"`
+	VenueID     *int    `json:"venueId,omitempty"`
+}
+
+type UpdateVenueInput struct {
+	Name     *string `json:"name,omitempty"`
+	Address  *string `json:"address,omitempty"`
+	Capacity *int    `json:"capacity,omitempty"`
+	City     *string `json:"city,omitempty"`
+	State    *string `json:"state,omitempty"`
+	Zip      *string `json:"zip,omitempty"`
+}
+
+type VenuesResponse struct {
+	Data   []*model.VenueResponse `json:"data,omitempty"`
+	Paging *PageMetadata          `json:"paging,omitempty"`
+	Error  *Error                 `json:"error,omitempty"`
 }

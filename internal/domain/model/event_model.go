@@ -39,7 +39,7 @@ type GetEventRequest struct {
 type EventsRequest struct {
 	Page  int    `query:"page" validate:"numeric"`
 	Size  int    `query:"size" validate:"numeric"`
-	Sort  string `query:"sort" validate:"omitempty,oneof=name date time venue_id"`
+	Sort  string `query:"sort" validate:"omitempty,oneof=id name description date time venue_id created_at updated_at"`
 	Order string `query:"order" validate:"omitempty"`
 }
 
@@ -51,7 +51,7 @@ type EventSearchRequest struct {
 	VenueID     uint   `query:"venue_id" validate:"omitempty"`
 	Page        int    `query:"page" validate:"numeric"`
 	Size        int    `query:"size" validate:"numeric"`
-	Sort        string `query:"sort" validate:"omitempty,oneof=name date time"`
+	Sort        string `query:"sort" validate:"omitempty,oneof=id name description date time venue_id created_at updated_at"`
 	Order       string `query:"order" validate:"omitempty"`
 }
 
