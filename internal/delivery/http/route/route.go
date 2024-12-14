@@ -1,6 +1,7 @@
 package route
 
 import (
+	graphql "github.com/TrinityKnights/Backend/internal/delivery/graph/handler"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
@@ -19,6 +20,7 @@ type RouteConfig interface {
 
 type Config struct {
 	App            *echo.Echo
+	GraphQLHandler *graphql.GraphQLHandler
 	UserHandler    *user.UserHandlerImpl
 	VenueHandler   *venue.VenueHandlerImpl
 	EventHandler   *event.EventHandlerImpl
@@ -42,21 +44,6 @@ func (c Config) PublicRoute() []route.Route {
 			Method:  echo.POST,
 			Path:    "/users/refresh",
 			Handler: c.UserHandler.RefreshToken,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events/:id",
-			Handler: c.EventHandler.GetEventByID,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events",
-			Handler: c.EventHandler.GetAllEvents,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events/search",
-			Handler: c.EventHandler.SearchEvents,
 		},
 		{
 			Method:  echo.POST,
@@ -114,14 +101,24 @@ func (c Config) PrivateRoute() []route.Route {
 			Handler: c.EventHandler.UpdateEvent,
 		},
 		{
+			Method:  echo.GET,
+			Path:    "/events/:id",
+			Handler: c.EventHandler.GetEventByID,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events",
+			Handler: c.EventHandler.GetAllEvents,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events/search",
+			Handler: c.EventHandler.SearchEvents,
+		},
+		{
 			Method:  echo.POST,
 			Path:    "/orders",
 			Handler: c.OrderHandler.CreateOrder,
-		},
-		{
-			Method:  echo.PUT,
-			Path:    "/orders/:id",
-			Handler: c.OrderHandler.UpdateOrder,
 		},
 		{
 			Method:  echo.GET,

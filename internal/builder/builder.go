@@ -1,6 +1,7 @@
 package builder
 
 import (
+	graphql "github.com/TrinityKnights/Backend/internal/delivery/graph/handler"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
@@ -13,6 +14,7 @@ import (
 
 type Config struct {
 	App            *echo.Echo
+	GraphQLHandler *graphql.GraphQLHandler
 	UserHandler    *user.UserHandlerImpl
 	VenueHandler   *venue.VenueHandlerImpl
 	EventHandler   *event.EventHandlerImpl
@@ -40,6 +42,12 @@ func (c *Config) BuildRoutes() {
 	for _, r := range c.Routes.PrivateRoute() {
 		privateGroup.Add(r.Method, r.Path, r.Handler)
 	}
+
+	// GraphQL routes with auth middleware
+	graphqlGroup := g.Group("/graphql")
+	graphqlGroup.Use(c.AuthMiddleware)
+	graphqlGroup.POST("", c.GraphQLHandler.GraphQLHandler)
+	c.App.GET("/playground", c.GraphQLHandler.PlaygroundHandler)
 
 	// Swagger routes
 	c.Routes.SwaggerRoutes()

@@ -27,10 +27,10 @@ type EventServiceImpl struct {
 	helper          *helper.ContextHelper
 }
 
-func NewEventServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, eventRepository event.EventRepository) *EventServiceImpl {
+func NewEventServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, eventRepository event.EventRepository) *EventServiceImpl {
 	return &EventServiceImpl{
 		DB:              db,
-		Cache:           cache,
+		Cache:           cacheImpl,
 		Log:             log,
 		Validate:        validate,
 		EventRepository: eventRepository,
@@ -173,7 +173,7 @@ func (s *EventServiceImpl) GetEvents(ctx context.Context, request *model.EventsR
 	db := s.DB.WithContext(ctx)
 
 	var events []entity.Event
-	totalItems, err := s.EventRepository.GetPaginated(db, &events, opts)
+	totalItems, err := s.EventRepository.GetPaginated(db, &events, &opts)
 	if err != nil {
 		s.Log.Errorf("failed to get events: %v", err)
 		return nil, domainErrors.ErrInternalServer
@@ -234,7 +234,7 @@ func (s *EventServiceImpl) SearchEvents(ctx context.Context, request *model.Even
 	}
 
 	var events []entity.Event
-	totalItems, err := s.EventRepository.GetPaginated(s.DB.WithContext(ctx), &events, opts)
+	totalItems, err := s.EventRepository.GetPaginated(s.DB.WithContext(ctx), &events, &opts)
 	if err != nil {
 		s.Log.Errorf("failed to search events: %v", err)
 		return nil, domainErrors.ErrInternalServer

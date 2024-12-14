@@ -10,5 +10,5 @@ import (
 type EventRepository interface {
 	repository.Repository[entity.Event]
 	GetByID(db *gorm.DB, event *entity.Event, id uint) error
-	GetPaginated(db *gorm.DB, events *[]entity.Event, opts model.EventQueryOptions) (int64, error)
+	GetPaginated(db *gorm.DB, events *[]entity.Event, opts *model.EventQueryOptions) (int64, error)
 }

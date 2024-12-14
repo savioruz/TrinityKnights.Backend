@@ -6,12 +6,32 @@ import (
 )
 
 func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
-	return &model.OrderResponse{
+	response := &model.OrderResponse{
 		ID:         order.ID,
 		UserID:     order.UserID,
 		TotalPrice: order.TotalPrice,
-		PaymentID:  order.PaymentID,
+		Quantity:   len(order.Tickets),
 	}
+
+	if len(order.Tickets) > 0 {
+		response.Tickets = make([]model.TicketResponse, len(order.Tickets))
+		for i := range order.Tickets {
+			ticket := &order.Tickets[i]
+			response.Tickets[i] = model.TicketResponse{
+				ID:         ticket.ID,
+				EventID:    ticket.EventID,
+				OrderID:    ticket.OrderID,
+				Price:      ticket.Price,
+				Type:       ticket.Type,
+				SeatNumber: ticket.SeatNumber,
+			}
+			if i == 0 {
+				response.EventID = ticket.EventID
+			}
+		}
+	}
+
+	return response
 }
 
 func OrdersToResponses(orders []entity.Order) []*model.OrderResponse {

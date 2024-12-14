@@ -39,3 +39,6 @@ dc.up: dc.build
 
 dc.down:
 	docker compose down
+
+mockgen:
+	sh ./bin/generate-mock.sh

@@ -6,7 +6,6 @@ import (
 
 type OrderHandler interface {
 	CreateOrder(ctx echo.Context) error
-	UpdateOrder(ctx echo.Context) error
 	GetOrderByID(ctx echo.Context) error
 	GetAllOrders(ctx echo.Context) error
 }

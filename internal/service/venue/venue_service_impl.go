@@ -27,10 +27,10 @@ type VenueServiceImpl struct {
 	helper          *helper.ContextHelper
 }
 
-func NewVenueServiceImpl(db *gorm.DB, cache *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, venueRepository venue.VenueRepository) *VenueServiceImpl {
+func NewVenueServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, venueRepository venue.VenueRepository) *VenueServiceImpl {
 	return &VenueServiceImpl{
 		DB:              db,
-		Cache:           cache,
+		Cache:           cacheImpl,
 		Log:             log,
 		Validate:        validate,
 		VenueRepository: venueRepository,
@@ -156,7 +156,7 @@ func (s *VenueServiceImpl) GetVenues(ctx context.Context, request *model.VenuesR
 	db := s.DB.WithContext(ctx)
 
 	var venues []entity.Venue
-	totalItems, err := s.VenueRepository.GetPaginated(db, &venues, opts)
+	totalItems, err := s.VenueRepository.GetPaginated(db, &venues, &opts)
 	if err != nil {
 		s.Log.Errorf("failed to get venues: %v", err)
 		return nil, domainErrors.ErrInternalServer
@@ -219,7 +219,7 @@ func (s *VenueServiceImpl) SearchVenues(ctx context.Context, request *model.Venu
 	}
 
 	var venues []entity.Venue
-	totalItems, err := s.VenueRepository.GetPaginated(s.DB.WithContext(ctx), &venues, opts)
+	totalItems, err := s.VenueRepository.GetPaginated(s.DB.WithContext(ctx), &venues, &opts)
 	if err != nil {
 		s.Log.Errorf("failed to search venues: %v", err)
 		return nil, domainErrors.ErrInternalServer
