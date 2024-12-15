@@ -15,7 +15,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	redis := config.NewRedisClient(viper, log)
 	jwt := config.NewJWT(viper)
 	validate := config.NewValidator()
-	midtrans := config.NewMidtransClient(viper)
 	app, log := config.NewEcho()
 
 	err := config.Bootstrap(&config.BootstrapConfig{
@@ -25,7 +24,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		Log:      log,
 		Validate: validate,
 		JWT:      jwt,
-		Midtrans: midtrans,
 	})
 	if err != nil {
 		log.Fatalf("Failed to bootstrap application: %v", err)

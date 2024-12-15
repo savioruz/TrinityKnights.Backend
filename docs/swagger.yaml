@@ -23,6 +23,23 @@ definitions:
     - time
     - venue_id
     type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.CreateTicketRequest:
+    properties:
+      count:
+        minimum: 1
+        type: integer
+      event_id:
+        type: integer
+      price:
+        type: number
+      type:
+        type: string
+    required:
+    - count
+    - event_id
+    - price
+    - type
+    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.CreateVenueRequest:
     properties:
       address:
@@ -84,17 +101,6 @@ definitions:
     - email
     - password
     type: object
-  github_com_TrinityKnights_Backend_internal_domain_model.MidtransCallbackRequest:
-    properties:
-      fraud_status:
-        type: string
-      order_id:
-        type: string
-      payment_type:
-        type: string
-      transaction_status:
-        type: string
-    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse:
     properties:
       event_id:
@@ -137,36 +143,6 @@ definitions:
       total_pages:
         type: integer
     type: object
-  github_com_TrinityKnights_Backend_internal_domain_model.PaymentRequest:
-    properties:
-      amount:
-        type: number
-      order_id:
-        type: integer
-      payment_method:
-        type: string
-    required:
-    - amount
-    - order_id
-    - payment_method
-    type: object
-  github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse:
-    properties:
-      amount:
-        type: number
-      id:
-        type: integer
-      midtrans_id:
-        type: string
-      order_id:
-        type: integer
-      payment_method:
-        type: string
-      payment_url:
-        type: string
-      status:
-        type: string
-    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.RefreshTokenRequest:
     properties:
       refresh_token:
@@ -191,14 +167,6 @@ definitions:
     - name
     - password
     type: object
-  github_com_TrinityKnights_Backend_internal_domain_model.Response-any:
-    properties:
-      data: {}
-      error:
-        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-      paging:
-        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
-    type: object
   ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse
   : properties:
       data:
@@ -215,6 +183,17 @@ definitions:
       data:
         items:
           $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse'
+        type: array
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse
+  : properties:
+      data:
+        items:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse'
         type: array
       error:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
@@ -250,10 +229,10 @@ definitions:
       paging:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
     type: object
-  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_PaymentResponse
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse
   : properties:
       data:
-        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse'
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse'
       error:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       paging:
@@ -293,13 +272,11 @@ definitions:
       event_id:
         type: integer
       id:
-        type: integer
+        type: string
       order:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse'
       order_id:
         type: integer
-      payment:
-        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse'
       price:
         type: number
       seat_number:
@@ -347,6 +324,23 @@ definitions:
         maxLength: 255
         minLength: 8
         type: string
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.UpdateTicketRequest:
+    properties:
+      event_id:
+        type: integer
+      id:
+        type: string
+      order_id:
+        type: integer
+      price:
+        type: number
+      seat_number:
+        type: string
+      type:
+        type: string
+    required:
+    - id
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateVenueRequest:
     properties:
@@ -723,25 +717,68 @@ paths:
       summary: Get order by ID
       tags:
       - orders
-  /payments:
+  /tickets:
+    get:
+      description: Get a paginated list of all tickets
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Sort field
+        enum:
+        - event_id
+        - order_id
+        - price
+        - type
+        - seat_number
+        in: query
+        name: sort
+        type: string
+      - description: Sort order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      summary: Get all tickets
+      tags:
+      - tickets
     post:
       consumes:
       - application/json
-      description: Create a new payment for an order
+      description: Create new tickets with the provided details
       parameters:
-      - description: Payment details
+      - description: Ticket details
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentRequest'
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.CreateTicketRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_PaymentResponse'
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse'
         "400":
           description: Bad Request
           schema:
@@ -752,39 +789,152 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Create a new payment
+      summary: Create new tickets
       tags:
-      - payments
-  /payments/callback:
-    post:
-      consumes:
-      - application/json
-      description: Handle payment callback from payment gateway
+      - tickets
+  /tickets/{id}:
+    get:
+      description: Get details of a specific ticket by its ID
       parameters:
-      - description: Callback details
-        in: body
-        name: request
+      - description: Ticket ID
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.MidtransCallbackRequest'
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-any'
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
-      summary: Handle payment callback
+      summary: Get a ticket by ID
       tags:
-      - payments
+      - tickets
+    put:
+      consumes:
+      - application/json
+      description: Update an existing ticket with the provided details
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated ticket details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing ticket
+      tags:
+      - tickets
+  /tickets/search:
+    get:
+      description: Search tickets with the provided query parameters
+      parameters:
+      - description: Ticket ID
+        in: query
+        name: id
+        type: string
+      - description: Event ID
+        in: query
+        name: event_id
+        type: integer
+      - description: Order ID
+        in: query
+        name: order_id
+        type: integer
+      - description: Ticket price
+        in: query
+        name: price
+        type: number
+      - description: Ticket type
+        in: query
+        name: type
+        type: string
+      - description: Seat number
+        in: query
+        name: seat_number
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: size
+        type: integer
+      - description: Sort field
+        enum:
+        - event_id
+        - order_id
+        - price
+        - type
+        - seat_number
+        in: query
+        name: sort
+        type: string
+      - description: Sort order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      summary: Search tickets
+      tags:
+      - tickets
   /users:
     get:
       consumes:

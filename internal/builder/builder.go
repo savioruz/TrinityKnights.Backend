@@ -5,6 +5,7 @@ import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/ticket"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
@@ -18,6 +19,7 @@ type Config struct {
 	UserHandler    *user.UserHandlerImpl
 	VenueHandler   *venue.VenueHandlerImpl
 	EventHandler   *event.EventHandlerImpl
+	TicketHandler  *ticket.TicketHandlerImpl
 	OrderHandler   *order.OrderHandlerImpl
 	PaymentHandler *payment.PaymentHandlerImpl
 	AuthMiddleware echo.MiddlewareFunc
