@@ -2,12 +2,13 @@ package user
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/service/user"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 type UserHandlerImpl struct {
@@ -189,4 +190,44 @@ func (h *UserHandlerImpl) RefreshToken(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
+}
+
+// RequestResetPassword function is a handler to request reset password via email
+// @Summary Request reset password
+// @Description Request reset password via email
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body model.RequestResetPasswordRequest true "Username for password reset request"
+// @Success 200 {object} model.Response[string]
+// @Failure 400 {object} model.Error
+// @Failure 500 {object} model.Error
+// @Router /users/request-reset-password [post]
+func (h *UserHandlerImpl) RequestReset(ctx echo.Context) error {
+	// Binding request to model
+	request := new(model.RequestReset)
+	if err := ctx.Bind(request); err != nil {
+		h.Log.Errorf("failed to bind request: %v", err)
+		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
+	}
+
+	// Create a RequestResetPassword model from the email
+	resetRequest := &model.RequestReset{
+		Email: request.Email,
+	}
+
+	// Call the service method
+	err := h.User.RequestReset(ctx.Request().Context(), resetRequest)
+	if err != nil {
+		h.Log.Errorf("failed to request reset password: %v", err)
+		switch {
+		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
+			return handler.HandleError(ctx, 400, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
+
+	// Send success response
+	return ctx.JSON(http.StatusOK, model.NewResponse("Reset password request successful. Please check your email.", nil))
 }

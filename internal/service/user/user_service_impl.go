@@ -227,6 +227,86 @@ func (s *UserServiceImpl) RefreshToken(ctx context.Context, request *model.Refre
 	return converter.LoginToTokenResponse(accessToken, refreshToken), nil
 }
 
-func (s *UserServiceImpl) ResetPasswordRequest(ctx context.Context, request *model.ResetPasswordRequest) error {
+func (s *UserServiceImpl) RequestReset(ctx context.Context, request *model.RequestReset) error {
+	// Mencari pengguna berdasarkan email
+	// user, err := s.UserRepository.GetByEmail(ctx, request.Email)
+	// if err != nil {
+	// 	return errors.New("email tersebut tidak ditemukan")
+	// }
+	// // Membuat token reset password (sebaiknya token ini disimpan di database atau Redis untuk validasi)
+	// resetToken := uuid.New().String()    // Menggunakan UUID untuk token sementara
+	// user.ResetPasswordToken = resetToken // Menyimpan token sementara ke pengguna
+
+	// // Mengirim email reset password dengan token
+	// templatePath := "./templates/email/reset-password.html"
+	// tmpl, err := template.ParseFiles(templatePath)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// var replacerEmail = struct {
+	// 	Token string
+	// }{
+	// 	Token: resetToken,
+	// }
+
+	// var body bytes.Buffer
+	// if err := tmpl.Execute(&body, replacerEmail); err != nil {
+	// 	return err
+	// }
+
+	// m := gomail.NewMessage()
+	// m.SetHeader("From", s.SMTPConfig.Username)
+	// m.SetHeader("To", user.Email)
+	// m.SetHeader("Subject", "Reset Password Request!")
+	// m.SetBody("text/html", body.String())
+
+	// d := gomail.NewDialer(
+	// 	s.SMTPConfig.Host,
+	// 	s.SMTPConfig.Port, s.SMTPConfig.Email, s.SMTPConfig.Password,
+	// )
+
+	// if err := d.DialAndSend(m); err != nil {
+	// 	return err
+	// }
+
+	// // Anda bisa memperbarui data pengguna dengan token reset password di database
+	// if err := s.UserRepository.Update(ctx, user); err != nil {
+	// 	return err
+	// }
+
+	return nil
+}
+
+func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.ResetPassword) error {
+	// // Validasi input password
+	// if err := s.Validate.Struct(request); err != nil {
+	// 	return errors.New("invalid input")
+	// }
+
+	// // Cari pengguna berdasarkan email
+	// user, err := s.UserRepository.GetByEmail(ctx, request.Email)
+	// if err != nil {
+	// 	return errors.New("email tersebut tidak ditemukan")
+	// }
+
+	// // Validasi token reset password
+	// if user.ResetPasswordToken != request.Token {
+	// 	return errors.New("invalid or expired reset token")
+	// }
+
+	// // Hash password baru
+	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	// if err != nil {
+	// 	return err
+	// }
+	// user.Password = string(hashedPassword)
+	// user.ResetPasswordToken = "" // Hapus token setelah password berhasil direset
+
+	// // Update password pengguna di database
+	// if err := s.UserRepository.Update(ctx, user); err != nil {
+	// 	return err
+	// }
+
 	return nil
 }
