@@ -5,6 +5,7 @@ import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
+	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/ticket"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
 	"github.com/TrinityKnights/Backend/pkg/route"
@@ -24,6 +25,7 @@ type Config struct {
 	UserHandler    *user.UserHandlerImpl
 	VenueHandler   *venue.VenueHandlerImpl
 	EventHandler   *event.EventHandlerImpl
+	TicketHandler  *ticket.TicketHandlerImpl
 	OrderHandler   *order.OrderHandlerImpl
 	PaymentHandler *payment.PaymentHandlerImpl
 }
@@ -46,9 +48,34 @@ func (c Config) PublicRoute() []route.Route {
 			Handler: c.UserHandler.RefreshToken,
 		},
 		{
-			Method:  echo.POST,
-			Path:    "/payments/callback",
-			Handler: c.PaymentHandler.HandleCallback,
+			Method:  echo.GET,
+			Path:    "/events/:id",
+			Handler: c.EventHandler.GetEventByID,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events",
+			Handler: c.EventHandler.GetAllEvents,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/events/search",
+			Handler: c.EventHandler.SearchEvents,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/tickets/:id",
+			Handler: c.TicketHandler.GetTicketByID,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/tickets",
+			Handler: c.TicketHandler.GetAllTickets,
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/tickets/search",
+			Handler: c.TicketHandler.SearchTickets,
 		},
 	}
 }
@@ -101,21 +128,6 @@ func (c Config) PrivateRoute() []route.Route {
 			Handler: c.EventHandler.UpdateEvent,
 		},
 		{
-			Method:  echo.GET,
-			Path:    "/events/:id",
-			Handler: c.EventHandler.GetEventByID,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events",
-			Handler: c.EventHandler.GetAllEvents,
-		},
-		{
-			Method:  echo.GET,
-			Path:    "/events/search",
-			Handler: c.EventHandler.SearchEvents,
-		},
-		{
 			Method:  echo.POST,
 			Path:    "/orders",
 			Handler: c.OrderHandler.CreateOrder,
@@ -132,8 +144,13 @@ func (c Config) PrivateRoute() []route.Route {
 		},
 		{
 			Method:  echo.POST,
-			Path:    "/payments",
-			Handler: c.PaymentHandler.CreatePayment,
+			Path:    "/tickets",
+			Handler: c.TicketHandler.CreateTicket,
+		},
+		{
+			Method:  echo.PUT,
+			Path:    "/tickets/:id",
+			Handler: c.TicketHandler.UpdateTicket,
 		},
 	}
 }

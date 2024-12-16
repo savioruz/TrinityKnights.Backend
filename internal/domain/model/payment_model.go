@@ -18,13 +18,5 @@ type PaymentResponse struct {
 	Amount        float64 `json:"amount"`
 	Status        string  `json:"status"`
 	PaymentMethod string  `json:"payment_method"`
-	MidtransID    string  `json:"midtrans_id"`
 	PaymentURL    string  `json:"payment_url"`
-}
-
-type MidtransCallbackRequest struct {
-	TransactionStatus string `json:"transaction_status"`
-	OrderID           string `json:"order_id"`
-	PaymentType       string `json:"payment_type"`
-	FraudStatus       string `json:"fraud_status"`
 }

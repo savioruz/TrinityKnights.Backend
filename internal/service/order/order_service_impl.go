@@ -78,7 +78,6 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	for i := 0; i < request.Quantity; i++ {
 		ticket := &entity.Ticket{
 			EventID:    request.EventID,
-			OrderID:    data.ID,
 			Price:      10.0, // @TODO: Change to ticket price
 			Type:       "regular",
 			SeatNumber: request.SeatNumber,

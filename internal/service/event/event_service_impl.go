@@ -233,8 +233,10 @@ func (s *EventServiceImpl) SearchEvents(ctx context.Context, request *model.Even
 		return &cacheResponse, nil
 	}
 
+	db := s.DB.WithContext(ctx)
+
 	var events []entity.Event
-	totalItems, err := s.EventRepository.GetPaginated(s.DB.WithContext(ctx), &events, &opts)
+	totalItems, err := s.EventRepository.GetPaginated(db, &events, &opts)
 	if err != nil {
 		s.Log.Errorf("failed to search events: %v", err)
 		return nil, domainErrors.ErrInternalServer

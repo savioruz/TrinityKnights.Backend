@@ -3,6 +3,7 @@ package converter
 import (
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
+	"github.com/TrinityKnights/Backend/pkg/helper"
 )
 
 func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
@@ -20,7 +21,7 @@ func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
 			response.Tickets[i] = model.TicketResponse{
 				ID:         ticket.ID,
 				EventID:    ticket.EventID,
-				OrderID:    ticket.OrderID,
+				OrderID:    helper.UintOrZero(ticket.OrderID),
 				Price:      ticket.Price,
 				Type:       ticket.Type,
 				SeatNumber: ticket.SeatNumber,
