@@ -3,8 +3,17 @@
 package graphmodel
 
 import (
+	"time"
+
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 )
+
+type CreateTicketInput struct {
+	EventID int     `json:"eventId"`
+	Price   float64 `json:"price"`
+	Type    string  `json:"type"`
+	Count   int     `json:"count"`
+}
 
 type Error struct {
 	Code    int    `json:"code"`
@@ -35,12 +44,37 @@ type Response struct {
 	Paging *PageMetadata `json:"paging,omitempty"`
 }
 
+type TicketResponse struct {
+	ID         string     `json:"id"`
+	EventID    int        `json:"eventId"`
+	OrderID    *int       `json:"orderId,omitempty"`
+	Price      float64    `json:"price"`
+	Type       string     `json:"type"`
+	SeatNumber string     `json:"seatNumber"`
+	CreatedAt  *time.Time `json:"createdAt,omitempty"`
+	UpdatedAt  *time.Time `json:"updatedAt,omitempty"`
+}
+
+type TicketsResponse struct {
+	Data   []*TicketResponse `json:"data,omitempty"`
+	Paging *PageMetadata     `json:"paging,omitempty"`
+	Error  *Error            `json:"error,omitempty"`
+}
+
 type UpdateEventInput struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`
 	Date        *string `json:"date,omitempty"`
 	Time        *string `json:"time,omitempty"`
 	VenueID     *int    `json:"venueId,omitempty"`
+}
+
+type UpdateTicketInput struct {
+	EventID    *int     `json:"eventId,omitempty"`
+	OrderID    *int     `json:"orderId,omitempty"`
+	Price      *float64 `json:"price,omitempty"`
+	Type       *string  `json:"type,omitempty"`
+	SeatNumber *string  `json:"seatNumber,omitempty"`
 }
 
 type UpdateVenueInput struct {

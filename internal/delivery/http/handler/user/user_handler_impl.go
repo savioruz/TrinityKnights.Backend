@@ -193,16 +193,6 @@ func (h *UserHandlerImpl) RefreshToken(ctx echo.Context) error {
 }
 
 // RequestResetPassword function is a handler to request reset password via email
-// @Summary Request reset password
-// @Description Request reset password via email
-// @Tags user
-// @Accept json
-// @Produce json
-// @Param user body model.RequestResetPasswordRequest true "Username for password reset request"
-// @Success 200 {object} model.Response[string]
-// @Failure 400 {object} model.Error
-// @Failure 500 {object} model.Error
-// @Router /users/request-reset-password [post]
 func (h *UserHandlerImpl) RequestReset(ctx echo.Context) error {
 	// Binding request to model
 	request := new(model.RequestReset)

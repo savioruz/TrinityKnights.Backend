@@ -1446,7 +1446,13 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "type": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "vip",
+                        "regular",
+                        "VIP",
+                        "REGULAR"
+                    ]
                 }
             }
         },
