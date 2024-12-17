@@ -33,6 +33,11 @@ definitions:
       price:
         type: number
       type:
+        enum:
+        - vip
+        - regular
+        - VIP
+        - REGULAR
         type: string
     required:
     - count

@@ -104,6 +104,59 @@ func (r *mutationResolver) UpdateVenue(ctx context.Context, id int, input graphm
 	return venue, nil
 }
 
+// CreateTicket is the resolver for the createTicket field.
+func (r *mutationResolver) CreateTicket(ctx context.Context, input graphmodel.CreateTicketInput) ([]*graphmodel.TicketResponse, error) {
+	tickets, err := r.TicketService.CreateTicket(ctx, &model.CreateTicketRequest{
+		EventID: uint(input.EventID),
+		Price:   float64(input.Price),
+		Type:    input.Type,
+		Count:   input.Count,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	graphTickets := make([]*graphmodel.TicketResponse, len(tickets))
+	for i, ticket := range tickets {
+		graphTickets[i] = &graphmodel.TicketResponse{
+			ID:         ticket.ID,
+			EventID:    int(ticket.EventID),
+			Price:      ticket.Price,
+			Type:       ticket.Type,
+			SeatNumber: ticket.SeatNumber,
+		}
+	}
+	return graphTickets, nil
+}
+
+// UpdateTicket is the resolver for the updateTicket field.
+func (r *mutationResolver) UpdateTicket(ctx context.Context, id string, input graphmodel.UpdateTicketInput) (*graphmodel.TicketResponse, error) {
+	var orderID uint
+	if input.OrderID != nil {
+		orderID = uint(*input.OrderID)
+	}
+
+	ticket, err := r.TicketService.UpdateTicket(ctx, &model.UpdateTicketRequest{
+		ID:         id,
+		Price:      *input.Price,
+		OrderID:    &orderID,
+		Type:       *input.Type,
+		SeatNumber: *input.SeatNumber,
+	})
+	if err != nil {
+		return nil, err
+	}
+	orderIDInt := int(ticket.OrderID)
+	return &graphmodel.TicketResponse{
+		ID:         ticket.ID,
+		OrderID:    &orderIDInt,
+		EventID:    int(ticket.EventID),
+		Price:      ticket.Price,
+		Type:       ticket.Type,
+		SeatNumber: ticket.SeatNumber,
+	}, nil
+}
+
 // Event is the resolver for the event field.
 func (r *queryResolver) Event(ctx context.Context, id int) (*model.EventResponse, error) {
 	event, err := r.EventService.GetEventByID(ctx, &model.GetEventRequest{
@@ -232,6 +285,174 @@ func (r *queryResolver) SearchEvents(ctx context.Context, name *string, descript
 	return &graphmodel.EventsResponse{
 		Data:   *events.Data,
 		Paging: (*graphmodel.PageMetadata)(events.Paging),
+	}, nil
+}
+
+// Ticket is the resolver for the ticket field.
+func (r *queryResolver) Ticket(ctx context.Context, id string) (*graphmodel.TicketResponse, error) {
+	ticket, err := r.TicketService.GetTicketByID(ctx, &model.GetTicketRequest{
+		ID: id,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	orderIDInt := int(ticket.OrderID)
+	return &graphmodel.TicketResponse{
+		ID:         ticket.ID,
+		EventID:    int(ticket.EventID),
+		OrderID:    &orderIDInt,
+		Price:      ticket.Price,
+		Type:       ticket.Type,
+		SeatNumber: ticket.SeatNumber,
+	}, nil
+}
+
+// Tickets is the resolver for the tickets field.
+func (r *queryResolver) Tickets(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.TicketsResponse, error) {
+	defaultPage := 1
+	defaultSize := 10
+	defaultSort := "created_at"
+	defaultOrder := "desc"
+
+	requestPage := defaultPage
+	if page != nil {
+		requestPage = *page
+	}
+
+	requestSize := defaultSize
+	if size != nil {
+		requestSize = *size
+	}
+
+	requestSort := defaultSort
+	if sort != nil {
+		requestSort = *sort
+	}
+
+	requestOrder := defaultOrder
+	if order != nil {
+		requestOrder = *order
+	}
+
+	paginated, err := r.TicketService.GetTickets(ctx, &model.TicketsRequest{
+		Page:  requestPage,
+		Size:  requestSize,
+		Sort:  requestSort,
+		Order: requestOrder,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	graphTickets := make([]*graphmodel.TicketResponse, len(*paginated.Data))
+	if paginated.Data != nil {
+		for i, ticket := range *paginated.Data {
+			orderIDInt := int(ticket.OrderID)
+			graphTickets[i] = &graphmodel.TicketResponse{
+				ID:         ticket.ID,
+				EventID:    int(ticket.EventID),
+				OrderID:    &orderIDInt,
+				Price:      ticket.Price,
+				Type:       ticket.Type,
+				SeatNumber: ticket.SeatNumber,
+			}
+		}
+	}
+	return &graphmodel.TicketsResponse{
+		Data:   graphTickets,
+		Paging: (*graphmodel.PageMetadata)(paginated.Paging),
+	}, nil
+}
+
+// SearchTickets is the resolver for the searchTickets field.
+func (r *queryResolver) SearchTickets(ctx context.Context, id *string, eventID *int, orderID *int, price *float64, typeArg *string, seatNumber *string, page *int, size *int, sort *string, order *string) (*graphmodel.TicketsResponse, error) {
+	defaultPage := 1
+	defaultSize := 10
+	defaultSort := "created_at"
+	defaultOrder := "desc"
+
+	var idStr string
+	if id != nil {
+		idStr = *id
+	}
+
+	var priceFloat float64
+	if price != nil {
+		priceFloat = *price
+	}
+
+	var typeStr string
+	if typeArg != nil {
+		typeStr = *typeArg
+	}
+
+	var seatNumberStr string
+	if seatNumber != nil {
+		seatNumberStr = *seatNumber
+	}
+
+	var eventIDUint, orderIDUint uint
+	if eventID != nil {
+		eventIDUint = uint(*eventID)
+	}
+	if orderID != nil {
+		orderIDUint = uint(*orderID)
+	}
+
+	requestPage := defaultPage
+	if page != nil {
+		requestPage = *page
+	}
+
+	requestSize := defaultSize
+	if size != nil {
+		requestSize = *size
+	}
+
+	requestSort := defaultSort
+	if sort != nil {
+		requestSort = *sort
+	}
+
+	requestOrder := defaultOrder
+	if order != nil {
+		requestOrder = *order
+	}
+
+	paginated, err := r.TicketService.SearchTickets(ctx, &model.TicketSearchRequest{
+		ID:         idStr,
+		EventID:    eventIDUint,
+		OrderID:    orderIDUint,
+		Price:      priceFloat,
+		Type:       typeStr,
+		SeatNumber: seatNumberStr,
+		Page:       requestPage,
+		Size:       requestSize,
+		Sort:       requestSort,
+		Order:      requestOrder,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	graphTickets := make([]*graphmodel.TicketResponse, len(*paginated.Data))
+	if paginated.Data != nil {
+		for i, ticket := range *paginated.Data {
+			orderIDInt := int(ticket.OrderID)
+			graphTickets[i] = &graphmodel.TicketResponse{
+				ID:         ticket.ID,
+				EventID:    int(ticket.EventID),
+				OrderID:    &orderIDInt,
+				Price:      ticket.Price,
+				Type:       ticket.Type,
+				SeatNumber: ticket.SeatNumber,
+			}
+		}
+	}
+	return &graphmodel.TicketsResponse{
+		Data:   graphTickets,
+		Paging: (*graphmodel.PageMetadata)(paginated.Paging),
 	}, nil
 }
 

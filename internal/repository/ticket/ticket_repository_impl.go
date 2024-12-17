@@ -1,6 +1,8 @@
 package ticket
 
 import (
+	"strings"
+
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/repository"
@@ -40,7 +42,7 @@ func (r *TicketRepositoryImpl) Find(db *gorm.DB, filter *model.TicketQueryOption
 		query = query.Where("price = ?", filter.Price)
 	}
 	if filter.Type != nil {
-		query = query.Where("type = ?", filter.Type)
+		query = query.Where("type = ?", strings.ToUpper(*filter.Type))
 	}
 	if filter.SeatNumber != nil {
 		query = query.Where("seat_number = ?", filter.SeatNumber)

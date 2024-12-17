@@ -91,11 +91,60 @@ input UpdateVenueInput {
   zip: String
 }
 
+type TicketResponse {
+  id: String!
+  eventId: Int!
+  orderId: Int
+  price: Float!
+  type: String!
+  seatNumber: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type TicketsResponse {
+  data: [TicketResponse!]
+  paging: PageMetadata
+  error: Error
+}
+
+input CreateTicketInput {
+  eventId: Int!
+  price: Float!
+  type: String!
+  count: Int!
+}
+
+input UpdateTicketInput {
+  eventId: Int
+  orderId: Int
+  price: Float
+  type: String
+  seatNumber: String
+}
+
 type Query {
   # Public queries
+  # Event queries
   event(id: Int!): EventResponse! @public
   events(page: Int, size: Int, sort: String, order: String): EventsResponse! @public
   searchEvents(name: String, description: String, date: String, time: String, venueId: Int, page: Int, size: Int, sort: String, order: String): EventsResponse! @public
+
+  # Ticket queries
+  ticket(id: String!): TicketResponse! @public
+  tickets(page: Int = 1, size: Int = 10, sort: String, order: String): TicketsResponse! @public
+  searchTickets(
+    id: String
+    eventId: Int
+    orderId: Int
+    price: Float
+    type: String
+    seatNumber: String
+    page: Int = 1
+    size: Int = 10
+    sort: String
+    order: String
+  ): TicketsResponse! @public
 
   # Private queries (require authentication)
   profile: UserResponse! @auth
@@ -138,4 +187,8 @@ type Mutation {
     zip: String!
   ): VenueResponse! @auth
   updateVenue(id: Int!, input: UpdateVenueInput!): VenueResponse! @auth
+
+  # Ticket mutations
+  createTicket(input: CreateTicketInput!): [TicketResponse!]! @auth
+  updateTicket(id: String!, input: UpdateTicketInput!): TicketResponse! @auth
 }
