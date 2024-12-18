@@ -47,10 +47,16 @@ func (h *PaymentHandlerImpl) CallbackPayment(ctx echo.Context) error {
 	myCallbackToken := h.Viper.GetString("XENDIT_CALLBACK_TOKEN")
 
 	// Verify
-	webhookID := ctx.Request().Header.Get("x-webhook-id")
-	callbackToken := ctx.Request().Header.Get("X-CALLBACK-TOKEN")
+	webhookID := ctx.Request().Header.Get("webhook-id")
+	callbackToken := ctx.Request().Header.Get("x-callback-token")
 
-	if webhookID != myWebhookID || callbackToken != myCallbackToken {
+	h.Log.Info(ctx.Request().Header)
+	h.Log.Info("webhookID: ", webhookID)
+	h.Log.Info("callbackToken: ", callbackToken)
+	h.Log.Info("myWebhookID: ", myWebhookID)
+	h.Log.Info("myCallbackToken: ", myCallbackToken)
+
+	if webhookID != myWebhookID && callbackToken != myCallbackToken {
 		h.Log.Errorf("invalid webhook id or callback token")
 		return handler.HandleError(ctx, http.StatusUnauthorized, errors.New("invalid webhook id or callback token"))
 	}
