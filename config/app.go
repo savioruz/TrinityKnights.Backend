@@ -51,7 +51,7 @@ func Bootstrap(config *BootstrapConfig) error {
 	venueRepository := repositoryVenue.NewVenueRepository(config.DB, config.Log)
 	eventRepository := repositoryEvent.NewEventRepository(config.DB, config.Log)
 	ticketRepository := repositoryTicket.NewTicketRepository(config.DB, config.Log)
-	_ = repositoryPayment.NewPaymentRepository(config.DB, config.Log)
+	paymentRepository := repositoryPayment.NewPaymentRepository(config.DB, config.Log)
 	orderRepository := repositoryOrder.NewOrderRepository(config.DB, config.Log)
 
 	// Initialize service
@@ -59,7 +59,7 @@ func Bootstrap(config *BootstrapConfig) error {
 	venueService := serviceVenue.NewVenueServiceImpl(config.DB, config.Cache, config.Log, config.Validate, venueRepository)
 	eventService := serviceEvent.NewEventServiceImpl(config.DB, config.Cache, config.Log, config.Validate, eventRepository)
 	ticketService := serviceTicket.NewTicketServiceImpl(config.DB, config.Cache, config.Log, config.Validate, ticketRepository)
-	paymentService := servicePayment.NewPaymentServiceImpl(config.DB, config.Cache, config.Log, config.Validate, config.Xendit)
+	paymentService := servicePayment.NewPaymentServiceImpl(config.DB, config.Cache, config.Log, config.Validate, paymentRepository, config.Xendit)
 	orderService := serviceOrder.NewOrderServiceImpl(config.DB, config.Cache, config.Log, config.Validate, orderRepository, ticketRepository, paymentService)
 
 	// Initialize handler
