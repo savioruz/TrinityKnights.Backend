@@ -69,46 +69,62 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Check if ticket is available and seat number is not taken for this event
+	// Check if seats are available
 	tickets, err := s.TicketRepository.Find(tx.Clauses(clause.Locking{Strength: "UPDATE"}), &model.TicketQueryOptions{
-		EventID:    &event.ID,
-		SeatNumber: &request.SeatNumber,
+		EventID:     &event.ID,
+		SeatNumbers: request.SeatNumbers,
 	})
 	if err != nil {
-		s.Log.Errorf("failed to get ticket: %v", err)
+		s.Log.Errorf("failed to get tickets: %v", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainErrors.ErrNotFound
+		}
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	if len(tickets) == 0 {
-		return nil, domainErrors.ErrNotFound
-	}
-
-	// Check if the seat is already taken
+	// Check if any seats are already taken
 	for _, ticket := range tickets {
 		if ticket.OrderID != nil {
 			return nil, domainErrors.ErrSeatAlreadyTaken
 		}
 	}
 
-	// Verify that this is the ticket we want to purchase
-	var targetTicket *entity.Ticket
-	for _, ticket := range tickets {
-		if ticket.ID == request.TicketID {
-			targetTicket = ticket
-			break
+	// Verify all requested tickets exist and match seat numbers
+	targetTickets := make([]*entity.Ticket, 0, len(request.TicketIDs))
+	totalPrice := 0.0
+
+	s.Log.Infof("Verifying tickets - IDs: %v, Seats: %v", request.TicketIDs, request.SeatNumbers)
+
+	for i, ticketID := range request.TicketIDs {
+		var found bool
+		for _, ticket := range tickets {
+			s.Log.Infof("Comparing - Request ID: %s, DB ID: %s, Request Seat: %s, DB Seat: %s",
+				ticketID, ticket.ID, request.SeatNumbers[i], ticket.SeatNumber)
+
+			if ticket.ID == ticketID && ticket.SeatNumber == request.SeatNumbers[i] {
+				targetTickets = append(targetTickets, ticket)
+				totalPrice += ticket.Price
+				found = true
+				break
+			}
+		}
+		if !found {
+			s.Log.Errorf("Ticket not found - ID: %s, Seat: %s", ticketID, request.SeatNumbers[i])
+			return nil, domainErrors.ErrNotFound
 		}
 	}
 
-	if targetTicket == nil {
-		return nil, domainErrors.ErrNotFound
+	// Convert pointer slice to value slice
+	orderTickets := make([]entity.Ticket, len(targetTickets))
+	for i, t := range targetTickets {
+		orderTickets[i] = *t
 	}
 
-	// Create order
 	dataOrder := entity.Order{
 		UserID:     claims.UserID,
 		Date:       time.Now(),
-		TotalPrice: targetTicket.Price * float64(request.Quantity),
-		Tickets:    []entity.Ticket{*targetTicket},
+		TotalPrice: totalPrice,
+		Tickets:    orderTickets,
 	}
 
 	if err := s.OrderRepository.Create(tx, &dataOrder); err != nil {
@@ -116,24 +132,31 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	ticketType := helper.TicketUpper(targetTicket.Type)
-	// Update ticket
-	if err := s.TicketRepository.Update(tx, &entity.Ticket{
-		ID:         targetTicket.ID,
-		EventID:    targetTicket.EventID,
-		OrderID:    &dataOrder.ID,
-		SeatNumber: targetTicket.SeatNumber,
-		Price:      targetTicket.Price,
-		Type:       ticketType.Long,
-	}); err != nil {
-		s.Log.Errorf("failed to update ticket: %v", err)
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return nil, domainErrors.ErrSeatAlreadyTaken
+	// Update tickets one by one
+	for _, ticket := range targetTickets {
+		ticketType := helper.TicketUpper(ticket.Type)
+		updateTicket := entity.Ticket{
+			ID:         ticket.ID,
+			EventID:    ticket.EventID,
+			OrderID:    &dataOrder.ID,
+			Price:      ticket.Price,
+			Type:       ticketType.Long,
+			SeatNumber: ticket.SeatNumber,
 		}
+
+		if err := s.TicketRepository.Update(tx, &updateTicket); err != nil {
+			s.Log.Errorf("failed to update ticket: %v", err)
+			return nil, domainErrors.ErrInternalServer
+		}
+	}
+
+	// Reload order with tickets
+	if err := tx.Preload("Tickets").First(&dataOrder, dataOrder.ID).Error; err != nil {
+		s.Log.Errorf("failed to reload order: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// After creating the order and updating the ticket, create payment
+	// After creating the order and updating the tickets, create payment
 	paymentRequest := &model.PaymentRequest{
 		OrderID: dataOrder.ID,
 		Amount:  dataOrder.TotalPrice,

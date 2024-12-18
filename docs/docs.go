@@ -1576,23 +1576,26 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "event_id",
-                "quantity",
-                "seat_number",
-                "ticket_id"
+                "seat_numbers",
+                "ticket_ids"
             ],
             "properties": {
                 "event_id": {
                     "type": "integer"
                 },
-                "quantity": {
-                    "type": "integer",
-                    "minimum": 1
+                "seat_numbers": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 },
-                "seat_number": {
-                    "type": "string"
-                },
-                "ticket_id": {
-                    "type": "string"
+                "ticket_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

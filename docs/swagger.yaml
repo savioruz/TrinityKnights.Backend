@@ -129,18 +129,20 @@ definitions:
     properties:
       event_id:
         type: integer
-      quantity:
-        minimum: 1
-        type: integer
-      seat_number:
-        type: string
-      ticket_id:
-        type: string
+      seat_numbers:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      ticket_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
     required:
     - event_id
-    - quantity
-    - seat_number
-    - ticket_id
+    - seat_numbers
+    - ticket_ids
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata:
     properties:

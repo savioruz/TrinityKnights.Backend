@@ -271,7 +271,7 @@ func (s *TicketServiceImpl) SearchTickets(ctx context.Context, request *model.Ti
 		opts.Type = &ticketType
 	}
 	if request.SeatNumber != "" {
-		opts.SeatNumber = &request.SeatNumber
+		opts.SeatNumbers = []string{request.SeatNumber}
 	}
 
 	db := s.DB.WithContext(ctx)

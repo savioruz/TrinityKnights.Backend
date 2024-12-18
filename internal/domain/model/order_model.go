@@ -1,10 +1,9 @@
 package model
 
 type OrderTicketRequest struct {
-	TicketID   string `json:"ticket_id" validate:"required"`
-	EventID    uint   `json:"event_id" validate:"required"`
-	Quantity   int    `json:"quantity" validate:"required,min=1"`
-	SeatNumber string `json:"seat_number" validate:"required"`
+	EventID     uint     `json:"event_id" validate:"required,gt=0"`
+	TicketIDs   []string `json:"ticket_ids" validate:"required,min=1"`
+	SeatNumbers []string `json:"seat_numbers" validate:"required,min=1,eqfield=TicketIDs"`
 }
 
 type OrderResponse struct {
