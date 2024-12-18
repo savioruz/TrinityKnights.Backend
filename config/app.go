@@ -6,6 +6,7 @@ import (
 	resolvers "github.com/TrinityKnights/Backend/internal/delivery/graph/resolvers"
 	handlerEvent "github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	handlerOrder "github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
+	handlerPayment "github.com/TrinityKnights/Backend/internal/delivery/http/handler/payment"
 	handlerTicket "github.com/TrinityKnights/Backend/internal/delivery/http/handler/ticket"
 	handlerUser "github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	handlerVenue "github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
@@ -28,6 +29,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/xendit/xendit-go/v6"
 	"gorm.io/gorm"
 )
@@ -39,6 +41,7 @@ type BootstrapConfig struct {
 	Log      *logrus.Logger
 	Validate *validator.Validate
 	JWT      *jwt.JWTConfig
+	Viper    *viper.Viper
 	Xendit   *xendit.APIClient
 }
 
@@ -68,6 +71,7 @@ func Bootstrap(config *BootstrapConfig) error {
 	eventHandler := handlerEvent.NewEventHandler(config.Log, eventService)
 	ticketHandler := handlerTicket.NewTicketHandler(config.Log, ticketService)
 	orderHandler := handlerOrder.NewOrderHandler(config.Log, orderService)
+	paymentHandler := handlerPayment.NewPaymentHandler(config.Viper, config.Log, paymentService)
 
 	// Initialize graphql
 	resolver := resolvers.NewResolver(userService, eventService, ticketService, venueService)
@@ -85,6 +89,7 @@ func Bootstrap(config *BootstrapConfig) error {
 		EventHandler:   eventHandler.(*handlerEvent.EventHandlerImpl),
 		TicketHandler:  ticketHandler.(*handlerTicket.TicketHandlerImpl),
 		OrderHandler:   orderHandler.(*handlerOrder.OrderHandlerImpl),
+		PaymentHandler: paymentHandler.(*handlerPayment.PaymentHandlerImpl),
 	}
 
 	// Build routes
@@ -96,6 +101,7 @@ func Bootstrap(config *BootstrapConfig) error {
 		EventHandler:   eventHandler.(*handlerEvent.EventHandlerImpl),
 		TicketHandler:  ticketHandler.(*handlerTicket.TicketHandlerImpl),
 		OrderHandler:   orderHandler.(*handlerOrder.OrderHandlerImpl),
+		PaymentHandler: paymentHandler.(*handlerPayment.PaymentHandlerImpl),
 		AuthMiddleware: authMiddleware,
 		Routes:         &routeConfig,
 	}
