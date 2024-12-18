@@ -169,6 +169,8 @@ github.com/valyala/fasttemplate v1.2.2 h1:lxLXG0uE3Qnshl9QyaK6XJxMXlQZELvChBOCmQ
 github.com/valyala/fasttemplate v1.2.2/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
 github.com/vektah/gqlparser/v2 v2.5.19 h1:bhCPCX1D4WWzCDvkPl4+TP1N8/kLrWnp43egplt7iSg=
 github.com/vektah/gqlparser/v2 v2.5.19/go.mod h1:y7kvl5bBlDeuWIvLtA9849ncyvx6/lj06RsMrEjVy3U=
+github.com/xendit/xendit-go/v6 v6.0.0-20240815053147-7132b34ff21b h1:BIUFf2OrsH75LovV7Q4vCTtmvwUHHLQuVlBVKbn3lQE=
+github.com/xendit/xendit-go/v6 v6.0.0-20240815053147-7132b34ff21b/go.mod h1:vEp4kP6H0EQETAY2DpurHFvWJntuAW6cVlmAqG96hUU=
 github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 h1:gEOO8jv9F4OT7lGCjxCBTO/36wtF6j2nSip77qHd4x4=
 github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1/go.mod h1:Ohn+xnUBiLI6FVj/9LpzZWtj1/D6lUovWYBkxHVV3aM=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=

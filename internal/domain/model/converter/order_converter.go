@@ -32,6 +32,17 @@ func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
 		}
 	}
 
+	// Add payment information if available
+	if order.Payment != nil {
+		response.Payment = &model.PaymentResponse{
+			ID:         order.Payment.ID,
+			OrderID:    order.Payment.OrderID,
+			Amount:     order.Payment.Amount,
+			Status:     string(order.Payment.Status),
+			PaymentURL: order.Payment.TransactionID,
+		}
+	}
+
 	return response
 }
 

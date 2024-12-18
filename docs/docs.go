@@ -1552,6 +1552,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "payment": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse"
+                },
                 "quantity": {
                     "type": "integer"
                 },
@@ -1573,19 +1576,26 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "event_id",
-                "quantity",
-                "seat_number"
+                "seat_numbers",
+                "ticket_ids"
             ],
             "properties": {
                 "event_id": {
                     "type": "integer"
                 },
-                "quantity": {
-                    "type": "integer",
-                    "minimum": 1
+                "seat_numbers": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 },
-                "seat_number": {
-                    "type": "string"
+                "ticket_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -1603,6 +1613,29 @@ const docTemplate = `{
                 },
                 "total_pages": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "expiry_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "payment_url": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },

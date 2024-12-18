@@ -14,6 +14,7 @@ type Order struct {
 	User       User      `json:"user" gorm:"foreignKey:UserID"`
 	Payment    *Payment  `json:"payment" gorm:"foreignKey:OrderID"`
 	Tickets    []Ticket  `json:"tickets" gorm:"foreignKey:OrderID"`
+	Payments   []Payment `json:"payments" gorm:"foreignKey:OrderID"`
 	gorm.Model
 }
 

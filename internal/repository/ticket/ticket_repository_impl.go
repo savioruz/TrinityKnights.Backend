@@ -1,8 +1,6 @@
 package ticket
 
 import (
-	"strings"
-
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/repository"
@@ -26,44 +24,23 @@ func (r *TicketRepositoryImpl) CreateBatch(db *gorm.DB, tickets []*entity.Ticket
 	return db.Create(tickets).Error
 }
 
-func (r *TicketRepositoryImpl) Find(db *gorm.DB, filter *model.TicketQueryOptions) ([]*entity.Ticket, error) {
+func (r *TicketRepositoryImpl) Find(db *gorm.DB, opts *model.TicketQueryOptions) ([]*entity.Ticket, error) {
 	query := db.Model(&entity.Ticket{})
 
-	if filter.ID != nil {
-		query = query.Where("id = ?", filter.ID)
-	}
-	if filter.EventID != nil {
-		query = query.Where("event_id = ?", filter.EventID)
-	}
-	if filter.OrderID != nil {
-		query = query.Where("order_id = ?", filter.OrderID)
-	}
-	if filter.Price != nil {
-		query = query.Where("price = ?", filter.Price)
-	}
-	if filter.Type != nil {
-		query = query.Where("type = ?", strings.ToUpper(*filter.Type))
-	}
-	if filter.SeatNumber != nil {
-		query = query.Where("seat_number = ?", filter.SeatNumber)
+	if opts.EventID != nil {
+		query = query.Where("event_id = ?", *opts.EventID)
 	}
 
-	if filter.Page > 0 && filter.Size > 0 {
-		offset := (filter.Page - 1) * filter.Size
-		query = query.Offset(offset).Limit(filter.Size)
-	}
-
-	if filter.Sort != "" {
-		order := "asc"
-		if filter.Order == "desc" {
-			order = "desc"
-		}
-		query = query.Order(filter.Sort + " " + order)
+	if len(opts.SeatNumbers) > 0 {
+		query = query.Where("seat_number IN (?)", opts.SeatNumbers)
 	}
 
 	var tickets []*entity.Ticket
-	err := query.Find(&tickets).Error
-	return tickets, err
+	if err := query.Find(&tickets).Error; err != nil {
+		return nil, err
+	}
+
+	return tickets, nil
 }
 
 func (r *TicketRepositoryImpl) GetLastTicketNumber(db *gorm.DB, eventID uint, ticketType string) (*entity.Ticket, error) {

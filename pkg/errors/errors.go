@@ -11,4 +11,6 @@ var (
 	ErrValidation         = errors.New("validation error")
 	ErrDuplicateEntry     = errors.New("duplicate entry")
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrSeatAlreadyTaken   = errors.New("seat is already taken")
+	ErrInvalidAmount      = errors.New("invalid payment amount")
 )
