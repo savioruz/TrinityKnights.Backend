@@ -10,31 +10,38 @@ import (
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
 	"github.com/TrinityKnights/Backend/internal/repository/order"
+	"github.com/TrinityKnights/Backend/internal/repository/ticket"
+	"github.com/TrinityKnights/Backend/internal/service/payment"
 	"github.com/TrinityKnights/Backend/pkg/cache"
 	domainErrors "github.com/TrinityKnights/Backend/pkg/errors"
 	"github.com/TrinityKnights/Backend/pkg/helper"
 	"github.com/go-playground/validator/v10"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type OrderServiceImpl struct {
-	DB              *gorm.DB
-	Cache           *cache.ImplCache
-	Log             *logrus.Logger
-	Validate        *validator.Validate
-	OrderRepository order.OrderRepository
-	helper          *helper.ContextHelper
+	DB               *gorm.DB
+	Cache            *cache.ImplCache
+	Log              *logrus.Logger
+	Validate         *validator.Validate
+	OrderRepository  order.OrderRepository
+	TicketRepository ticket.TicketRepository
+	PaymentService   payment.PaymentService
+	helper           *helper.ContextHelper
 }
 
-func NewOrderServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository) *OrderServiceImpl {
+func NewOrderServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, orderRepository order.OrderRepository, ticketRepository ticket.TicketRepository, paymentService payment.PaymentService) *OrderServiceImpl {
 	return &OrderServiceImpl{
-		DB:              db,
-		Cache:           cacheImpl,
-		Log:             log,
-		Validate:        validate,
-		OrderRepository: orderRepository,
-		helper:          helper.NewContextHelper(),
+		DB:               db,
+		Cache:            cacheImpl,
+		Log:              log,
+		Validate:         validate,
+		OrderRepository:  orderRepository,
+		TicketRepository: ticketRepository,
+		PaymentService:   paymentService,
+		helper:           helper.NewContextHelper(),
 	}
 }
 
@@ -62,31 +69,103 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Create data order
-	data := &entity.Order{
-		UserID:     claims.UserID,
-		Date:       time.Now(),
-		TotalPrice: float64(request.Quantity) * 10.0, // @TODO: Change to ticket price
-	}
-
-	if err := s.OrderRepository.Create(tx, data); err != nil {
-		s.Log.Errorf("failed to create data: %v", err)
+	// Check if seats are available
+	tickets, err := s.TicketRepository.Find(tx.Clauses(clause.Locking{Strength: "UPDATE"}), &model.TicketQueryOptions{
+		EventID:     &event.ID,
+		SeatNumbers: request.SeatNumbers,
+	})
+	if err != nil {
+		s.Log.Errorf("failed to get tickets: %v", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainErrors.ErrNotFound
+		}
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Create tickets
-	for i := 0; i < request.Quantity; i++ {
-		ticket := &entity.Ticket{
-			EventID:    request.EventID,
-			Price:      10.0, // @TODO: Change to ticket price
-			Type:       "regular",
-			SeatNumber: request.SeatNumber,
+	// Check if any seats are already taken
+	for _, ticket := range tickets {
+		if ticket.OrderID != nil {
+			return nil, domainErrors.ErrSeatAlreadyTaken
+		}
+	}
+
+	// Verify all requested tickets exist and match seat numbers
+	targetTickets := make([]*entity.Ticket, 0, len(request.TicketIDs))
+	totalPrice := 0.0
+
+	s.Log.Infof("Verifying tickets - IDs: %v, Seats: %v", request.TicketIDs, request.SeatNumbers)
+
+	for i, ticketID := range request.TicketIDs {
+		var found bool
+		for _, ticket := range tickets {
+			s.Log.Infof("Comparing - Request ID: %s, DB ID: %s, Request Seat: %s, DB Seat: %s",
+				ticketID, ticket.ID, request.SeatNumbers[i], ticket.SeatNumber)
+
+			if ticket.ID == ticketID && ticket.SeatNumber == request.SeatNumbers[i] {
+				targetTickets = append(targetTickets, ticket)
+				totalPrice += ticket.Price
+				found = true
+				break
+			}
+		}
+		if !found {
+			s.Log.Errorf("Ticket not found - ID: %s, Seat: %s", ticketID, request.SeatNumbers[i])
+			return nil, domainErrors.ErrNotFound
+		}
+	}
+
+	// Convert pointer slice to value slice
+	orderTickets := make([]entity.Ticket, len(targetTickets))
+	for i, t := range targetTickets {
+		orderTickets[i] = *t
+	}
+
+	dataOrder := entity.Order{
+		UserID:     claims.UserID,
+		Date:       time.Now(),
+		TotalPrice: totalPrice,
+		Tickets:    orderTickets,
+	}
+
+	if err := s.OrderRepository.Create(tx, &dataOrder); err != nil {
+		s.Log.Errorf("failed to create order: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	// Update tickets one by one
+	for _, ticket := range targetTickets {
+		ticketType := helper.TicketUpper(ticket.Type)
+		updateTicket := entity.Ticket{
+			ID:         ticket.ID,
+			EventID:    ticket.EventID,
+			OrderID:    &dataOrder.ID,
+			Price:      ticket.Price,
+			Type:       ticketType.Long,
+			SeatNumber: ticket.SeatNumber,
 		}
 
-		if err := tx.Create(ticket).Error; err != nil {
-			s.Log.Errorf("failed to create ticket: %v", err)
+		if err := s.TicketRepository.Update(tx, &updateTicket); err != nil {
+			s.Log.Errorf("failed to update ticket: %v", err)
 			return nil, domainErrors.ErrInternalServer
 		}
+	}
+
+	// Reload order with tickets
+	if err := tx.Preload("Tickets").First(&dataOrder, dataOrder.ID).Error; err != nil {
+		s.Log.Errorf("failed to reload order: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	// After creating the order and updating the tickets, create payment
+	paymentRequest := &model.PaymentRequest{
+		OrderID: dataOrder.ID,
+		Amount:  dataOrder.TotalPrice,
+	}
+
+	payment, err := s.PaymentService.CreateInvoice(ctx, tx, paymentRequest)
+	if err != nil {
+		s.Log.Errorf("failed to create payment: %v", err)
+		return nil, domainErrors.ErrInternalServer
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -94,7 +173,10 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	return converter.OrderEntityToResponse(data), nil
+	response := converter.OrderEntityToResponse(&dataOrder)
+	response.Payment = payment
+
+	return response, nil
 }
 
 func (s *OrderServiceImpl) GetOrderByID(ctx context.Context, request *model.GetOrderRequest) (*model.OrderResponse, error) {
@@ -190,7 +272,7 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 
 	// Get paginated results
 	offset := (request.Page - 1) * request.Size
-	if err := query.Preload("Tickets").Offset(offset).Limit(request.Size).Find(&orders).Error; err != nil {
+	if err := query.Preload("Tickets").Preload("Payments").Offset(offset).Limit(request.Size).Find(&orders).Error; err != nil {
 		s.Log.Errorf("failed to get orders: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}

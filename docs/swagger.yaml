@@ -112,6 +112,8 @@ definitions:
         type: integer
       id:
         type: integer
+      payment:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse'
       quantity:
         type: integer
       tickets:
@@ -127,15 +129,20 @@ definitions:
     properties:
       event_id:
         type: integer
-      quantity:
-        minimum: 1
-        type: integer
-      seat_number:
-        type: string
+      seat_numbers:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      ticket_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
     required:
     - event_id
-    - quantity
-    - seat_number
+    - seat_numbers
+    - ticket_ids
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata:
     properties:
@@ -147,6 +154,21 @@ definitions:
         type: integer
       total_pages:
         type: integer
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse:
+    properties:
+      amount:
+        type: number
+      expiry_date:
+        type: string
+      id:
+        type: integer
+      order_id:
+        type: integer
+      payment_url:
+        type: string
+      status:
+        type: string
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.RefreshTokenRequest:
     properties:

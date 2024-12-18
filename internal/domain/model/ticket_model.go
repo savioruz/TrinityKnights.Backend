@@ -52,14 +52,14 @@ type TicketSearchRequest struct {
 }
 
 type TicketQueryOptions struct {
-	ID         *string
-	EventID    *uint
-	OrderID    *uint
-	Price      *float64
-	Type       *string
-	SeatNumber *string
-	Page       int
-	Size       int
-	Sort       string
-	Order      string
+	ID          *string
+	EventID     *uint
+	OrderID     *uint
+	Price       *float64
+	Type        *string
+	SeatNumbers []string `json:"seat_numbers,omitempty"`
+	Page        int
+	Size        int
+	Sort        string
+	Order       string
 }
