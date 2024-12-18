@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type PaymentStatus string
 
 const (
@@ -31,24 +29,24 @@ type PaymentUpdateRequest struct {
 }
 
 type PaymentCallbackRequest struct {
-	ID                 string    `json:"id" validate:"required"`
-	ExternalID         string    `json:"external_id" validate:"required"`
-	UserID             string    `json:"user_id" validate:"required"`
-	IsHigh             bool      `json:"is_high" validate:"required"`
-	PaymentMethod      string    `json:"payment_method" validate:"required"`
-	Status             string    `json:"status" validate:"required"`
-	MerchantName       string    `json:"merchant_name" validate:"required"`
-	Amount             int       `json:"amount" validate:"required"`
-	BankCode           *string   `json:"bank_code,omitempty" validate:"omitempty"`
-	PaidAmount         int       `json:"paid_amount" validate:"required"`
-	PaidAt             time.Time `json:"paid_at" validate:"required"`
-	PayerEmail         string    `json:"payer_email" validate:"required"`
-	Description        string    `json:"description" validate:"required"`
-	Created            time.Time `json:"created" validate:"required"`
-	Updated            time.Time `json:"updated" validate:"required"`
-	Currency           string    `json:"currency" validate:"required"`
-	PaymentChannel     string    `json:"payment_channel" validate:"required"`
-	PaymentDestination string    `json:"payment_destination" validate:"required"`
+	ID                 string  `json:"id"`
+	ExternalID         string  `json:"external_id"`
+	UserID             string  `json:"user_id"`
+	IsHigh             bool    `json:"is_high"`
+	PaymentMethod      string  `json:"payment_method"`
+	Status             string  `json:"status"`
+	MerchantName       string  `json:"merchant_name"`
+	Amount             int     `json:"amount"`
+	BankCode           *string `json:"bank_code,omitempty"`
+	PaidAmount         int     `json:"paid_amount"`
+	PaidAt             string  `json:"paid_at"`
+	PayerEmail         string  `json:"payer_email"`
+	Description        string  `json:"description"`
+	Created            string  `json:"created"`
+	Updated            string  `json:"updated"`
+	Currency           string  `json:"currency"`
+	PaymentChannel     string  `json:"payment_channel"`
+	PaymentDestination string  `json:"payment_destination"`
 }
 
 type PaymentCallbackResponse struct {

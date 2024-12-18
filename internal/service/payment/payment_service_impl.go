@@ -107,12 +107,6 @@ func (s *PaymentServiceImpl) CreateInvoice(ctx context.Context, tx *gorm.DB, req
 }
 
 func (s *PaymentServiceImpl) Callback(ctx context.Context, request *model.PaymentCallbackRequest) (*model.PaymentCallbackResponse, error) {
-	if err := s.Validate.Struct(request); err != nil {
-		return nil, domainErrors.ErrValidation
-	}
-
-	s.Log.Infof("payment callback request: %+v", request)
-
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
