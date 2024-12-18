@@ -37,6 +37,7 @@ func main() {
 		Log:      log,
 		Validate: validate,
 		JWT:      jwt,
+		Viper:    viper,
 		Xendit:   xendit,
 	})
 	if err != nil {
