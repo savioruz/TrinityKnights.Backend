@@ -7,6 +7,7 @@ import (
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
+	"github.com/TrinityKnights/Backend/internal/repository/payment"
 	"github.com/TrinityKnights/Backend/pkg/cache"
 	domainErrors "github.com/TrinityKnights/Backend/pkg/errors"
 	"github.com/TrinityKnights/Backend/pkg/helper"
@@ -18,22 +19,24 @@ import (
 )
 
 type PaymentServiceImpl struct {
-	DB       *gorm.DB
-	Cache    *cache.ImplCache
-	Log      *logrus.Logger
-	Validate *validator.Validate
-	Xendit   *xendit.APIClient
-	helper   *helper.ContextHelper
+	DB                *gorm.DB
+	Cache             *cache.ImplCache
+	Log               *logrus.Logger
+	Validate          *validator.Validate
+	PaymentRepository payment.PaymentRepository
+	Xendit            *xendit.APIClient
+	helper            *helper.ContextHelper
 }
 
-func NewPaymentServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, xendit *xendit.APIClient) *PaymentServiceImpl {
+func NewPaymentServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, paymentRepository payment.PaymentRepository, xendit *xendit.APIClient) *PaymentServiceImpl {
 	return &PaymentServiceImpl{
-		DB:       db,
-		Cache:    cacheImpl,
-		Log:      log,
-		Validate: validate,
-		Xendit:   xendit,
-		helper:   helper.NewContextHelper(),
+		DB:                db,
+		Cache:             cacheImpl,
+		Log:               log,
+		Validate:          validate,
+		PaymentRepository: paymentRepository,
+		Xendit:            xendit,
+		helper:            helper.NewContextHelper(),
 	}
 }
 
@@ -100,5 +103,47 @@ func (s *PaymentServiceImpl) CreateInvoice(ctx context.Context, tx *gorm.DB, req
 		Status:     string(invoice.Status),
 		ExpiryDate: invoice.ExpiryDate.Format(time.RFC3339),
 		PaymentURL: invoice.InvoiceUrl,
+	}, nil
+}
+
+func (s *PaymentServiceImpl) Callback(ctx context.Context, request *model.PaymentCallbackRequest) (*model.PaymentCallbackResponse, error) {
+	if err := s.Validate.Struct(request); err != nil {
+		return nil, domainErrors.ErrValidation
+	}
+
+	s.Log.Infof("payment callback request: %+v", request)
+
+	tx := s.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	// Check if id is valid
+	dataPayment, err := s.PaymentRepository.GetByTransactionID(ctx, request.ID)
+	if err != nil {
+		s.Log.Errorf("failed to get payment by transaction id: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	updatePayment := &model.PaymentUpdateRequest{
+		ID:     dataPayment.ID,
+		Method: request.PaymentMethod,
+		Status: model.PaymentStatus(request.Status),
+	}
+
+	// Update payment status
+	if err := s.PaymentRepository.UpdatePaymentStatus(ctx, updatePayment); err != nil {
+		s.Log.Errorf("failed to update payment status: %v", err)
+		if err == gorm.ErrRecordNotFound {
+			return nil, domainErrors.ErrNotFound
+		}
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		s.Log.Errorf("failed to commit transaction: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	return &model.PaymentCallbackResponse{
+		Status: string(updatePayment.Status),
 	}, nil
 }

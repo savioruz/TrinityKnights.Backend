@@ -486,6 +486,52 @@
                 }
             }
         },
+        "/payment/callback": {
+            "post": {
+                "description": "Callback Payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Callback Payment",
+                "parameters": [
+                    {
+                        "description": "Payment Callback Request",
+                        "name": "payment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentCallbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentCallbackResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/tickets": {
             "get": {
                 "description": "Get a paginated list of all tickets",
@@ -1606,6 +1652,89 @@
                 },
                 "total_pages": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.PaymentCallbackRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "created",
+                "currency",
+                "description",
+                "external_id",
+                "id",
+                "is_high",
+                "merchant_name",
+                "paid_amount",
+                "paid_at",
+                "payer_email",
+                "payment_channel",
+                "payment_destination",
+                "payment_method",
+                "status",
+                "updated",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_high": {
+                    "type": "boolean"
+                },
+                "merchant_name": {
+                    "type": "string"
+                },
+                "paid_amount": {
+                    "type": "integer"
+                },
+                "paid_at": {
+                    "type": "string"
+                },
+                "payer_email": {
+                    "type": "string"
+                },
+                "payment_channel": {
+                    "type": "string"
+                },
+                "payment_destination": {
+                    "type": "string"
+                },
+                "payment_method": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.PaymentCallbackResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
                 }
             }
         },
