@@ -39,6 +39,7 @@ type PaymentCallbackRequest struct {
 	Status             string    `json:"status" validate:"required"`
 	MerchantName       string    `json:"merchant_name" validate:"required"`
 	Amount             int       `json:"amount" validate:"required"`
+	BankCode           *string   `json:"bank_code,omitempty" validate:"omitempty"`
 	PaidAmount         int       `json:"paid_amount" validate:"required"`
 	PaidAt             time.Time `json:"paid_at" validate:"required"`
 	PayerEmail         string    `json:"payer_email" validate:"required"`
