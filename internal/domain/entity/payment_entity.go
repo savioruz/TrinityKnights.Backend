@@ -1,25 +1,18 @@
 package entity
 
 import (
+	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"gorm.io/gorm"
 )
 
-type PaymentStatus string
-
-const (
-	PaymentStatusPending   PaymentStatus = "PENDING"
-	PaymentStatusSuccess   PaymentStatus = "SUCCESS"
-	PaymentStatusFailed    PaymentStatus = "FAILED"
-	PaymentStatusExpired   PaymentStatus = "EXPIRED"
-	PaymentStatusCancelled PaymentStatus = "CANCELLED"
-)
-
 type Payment struct {
-	ID            uint   `json:"id" gorm:"primaryKey;autoIncrement"`
-	OrderID       uint   `json:"order_id" gorm:"not null"`
-	Method        string `json:"method" gorm:"not null"`
-	TransactionID string `json:"transaction_id" gorm:"not null"`
-	Order         Order  `json:"order" gorm:"foreignKey:OrderID"`
+	ID            uint                `json:"id" gorm:"primaryKey;autoIncrement"`
+	OrderID       uint                `json:"order_id" gorm:"not null"`
+	Method        *string             `json:"method,omitempty" gorm:"null"`
+	TransactionID string              `json:"transaction_id" gorm:"not null"`
+	Amount        float64             `json:"amount" gorm:"null"`
+	Status        model.PaymentStatus `json:"status" gorm:"null"`
+	Order         Order               `json:"order" gorm:"foreignKey:OrderID"`
 	gorm.Model
 }
 

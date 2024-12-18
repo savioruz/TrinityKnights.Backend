@@ -1,8 +1,10 @@
 CREATE TABLE IF NOT EXISTS payments (
     id SERIAL NOT NULL,
     order_id integer NOT NULL UNIQUE,
-    method varchar(20) NOT NULL,
+    method varchar(20),
     transaction_id varchar(255),
+    amount float,
+    status varchar(20),
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     deleted_at timestamp with time zone,

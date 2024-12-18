@@ -13,11 +13,13 @@ import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
 	repositoryEvent "github.com/TrinityKnights/Backend/internal/repository/event"
 	repositoryOrder "github.com/TrinityKnights/Backend/internal/repository/order"
+	repositoryPayment "github.com/TrinityKnights/Backend/internal/repository/payment"
 	repositoryTicket "github.com/TrinityKnights/Backend/internal/repository/ticket"
 	repositoryUser "github.com/TrinityKnights/Backend/internal/repository/user"
 	repositoryVenue "github.com/TrinityKnights/Backend/internal/repository/venue"
 	serviceEvent "github.com/TrinityKnights/Backend/internal/service/event"
 	serviceOrder "github.com/TrinityKnights/Backend/internal/service/order"
+	servicePayment "github.com/TrinityKnights/Backend/internal/service/payment"
 	serviceTicket "github.com/TrinityKnights/Backend/internal/service/ticket"
 	serviceUser "github.com/TrinityKnights/Backend/internal/service/user"
 	serviceVenue "github.com/TrinityKnights/Backend/internal/service/venue"
@@ -26,6 +28,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+	"github.com/xendit/xendit-go/v6"
 	"gorm.io/gorm"
 )
 
@@ -36,6 +39,7 @@ type BootstrapConfig struct {
 	Log      *logrus.Logger
 	Validate *validator.Validate
 	JWT      *jwt.JWTConfig
+	Xendit   *xendit.APIClient
 }
 
 func Bootstrap(config *BootstrapConfig) error {
@@ -47,6 +51,7 @@ func Bootstrap(config *BootstrapConfig) error {
 	venueRepository := repositoryVenue.NewVenueRepository(config.DB, config.Log)
 	eventRepository := repositoryEvent.NewEventRepository(config.DB, config.Log)
 	ticketRepository := repositoryTicket.NewTicketRepository(config.DB, config.Log)
+	_ = repositoryPayment.NewPaymentRepository(config.DB, config.Log)
 	orderRepository := repositoryOrder.NewOrderRepository(config.DB, config.Log)
 
 	// Initialize service
@@ -54,7 +59,8 @@ func Bootstrap(config *BootstrapConfig) error {
 	venueService := serviceVenue.NewVenueServiceImpl(config.DB, config.Cache, config.Log, config.Validate, venueRepository)
 	eventService := serviceEvent.NewEventServiceImpl(config.DB, config.Cache, config.Log, config.Validate, eventRepository)
 	ticketService := serviceTicket.NewTicketServiceImpl(config.DB, config.Cache, config.Log, config.Validate, ticketRepository)
-	orderService := serviceOrder.NewOrderServiceImpl(config.DB, config.Cache, config.Log, config.Validate, orderRepository)
+	paymentService := servicePayment.NewPaymentServiceImpl(config.DB, config.Cache, config.Log, config.Validate, config.Xendit)
+	orderService := serviceOrder.NewOrderServiceImpl(config.DB, config.Cache, config.Log, config.Validate, orderRepository, ticketRepository, paymentService)
 
 	// Initialize handler
 	userHandler := handlerUser.NewUserHandler(config.Log, userService)

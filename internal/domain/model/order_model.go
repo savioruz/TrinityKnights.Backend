@@ -1,6 +1,7 @@
 package model
 
 type OrderTicketRequest struct {
+	TicketID   string `json:"ticket_id" validate:"required"`
 	EventID    uint   `json:"event_id" validate:"required"`
 	Quantity   int    `json:"quantity" validate:"required,min=1"`
 	SeatNumber string `json:"seat_number" validate:"required"`
@@ -13,6 +14,7 @@ type OrderResponse struct {
 	Quantity   int              `json:"quantity"`
 	TotalPrice float64          `json:"total_price"`
 	Tickets    []TicketResponse `json:"tickets"`
+	Payment    *PaymentResponse `json:"payment,omitempty"`
 }
 
 type UpdateOrderRequest struct {

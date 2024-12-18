@@ -49,19 +49,13 @@ func (s *TicketServiceImpl) CreateTicket(ctx context.Context, request *model.Cre
 		return nil, domainErrors.ErrBadRequest
 	}
 
-	ticketType := strings.ToUpper(request.Type)
-	var seatNumber string
-	switch ticketType {
-	case "VIP":
-		seatNumber = "VIP"
-	case "REGULAR":
-		seatNumber = "REG"
-	default:
+	ticketType := helper.TicketUpper(request.Type)
+	if ticketType.Short == "" || ticketType.Long == "" {
 		return nil, domainErrors.ErrBadRequest
 	}
 
 	// Get the last ticket number using the repository method
-	lastTicket, err := s.TicketRepository.GetLastTicketNumber(tx, request.EventID, ticketType)
+	lastTicket, err := s.TicketRepository.GetLastTicketNumber(tx, request.EventID, ticketType.Short)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.Log.Errorf("failed to get last ticket: %v", err)
 		return nil, domainErrors.ErrInternalServer
@@ -84,8 +78,8 @@ func (s *TicketServiceImpl) CreateTicket(ctx context.Context, request *model.Cre
 			ID:         fmt.Sprintf("T-%s", uuid.NewString()[:6]),
 			EventID:    request.EventID,
 			Price:      request.Price,
-			Type:       ticketType,
-			SeatNumber: fmt.Sprintf("%s-%d", seatNumber, startingNumber+i),
+			Type:       ticketType.Long,
+			SeatNumber: fmt.Sprintf("%s-%d", ticketType.Short, startingNumber+i),
 		}
 	}
 

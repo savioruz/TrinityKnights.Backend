@@ -1552,6 +1552,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "payment": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse"
+                },
                 "quantity": {
                     "type": "integer"
                 },
@@ -1574,7 +1577,8 @@ const docTemplate = `{
             "required": [
                 "event_id",
                 "quantity",
-                "seat_number"
+                "seat_number",
+                "ticket_id"
             ],
             "properties": {
                 "event_id": {
@@ -1585,6 +1589,9 @@ const docTemplate = `{
                     "minimum": 1
                 },
                 "seat_number": {
+                    "type": "string"
+                },
+                "ticket_id": {
                     "type": "string"
                 }
             }
@@ -1603,6 +1610,29 @@ const docTemplate = `{
                 },
                 "total_pages": {
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "expiry_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "payment_url": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
