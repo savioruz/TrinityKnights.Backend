@@ -8,6 +8,7 @@ import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/ticket"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
+	rbac "github.com/TrinityKnights/Backend/internal/delivery/http/middleware"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/route"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -39,10 +40,11 @@ func (c *Config) BuildRoutes() {
 		g.Add(r.Method, r.Path, r.Handler)
 	}
 
-	// Private routes with auth middleware
+	// Private routes with auth and rbac middleware
 	privateGroup := g.Group("", c.AuthMiddleware)
 	for _, r := range c.Routes.PrivateRoute() {
-		privateGroup.Add(r.Method, r.Path, r.Handler)
+		middleware := rbac.RBACMiddleware(r.Roles)
+		privateGroup.Add(r.Method, r.Path, middleware(r.Handler))
 	}
 
 	// GraphQL routes
