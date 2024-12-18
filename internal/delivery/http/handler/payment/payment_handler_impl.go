@@ -22,6 +22,16 @@ func NewPaymentHandler(log *logrus.Logger, paymentService payment.PaymentService
 	}
 }
 
+// @Summary Callback Payment
+// @Description Callback Payment
+// @Tags Payment
+// @Accept json
+// @Produce json
+// @Param payment body model.PaymentCallbackRequest true "Payment Callback Request"
+// @Success 200 {object} model.PaymentCallbackResponse
+// @Failure 400 {object} model.Error
+// @Failure 500 {object} model.Error
+// @Router /payment/callback [post]
 func (h *PaymentHandlerImpl) CallbackPayment(ctx echo.Context) error {
 	request := new(model.PaymentCallbackRequest)
 	if err := ctx.Bind(request); err != nil {

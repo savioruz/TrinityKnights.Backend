@@ -77,6 +77,11 @@ func (c Config) PublicRoute() []route.Route {
 			Path:    "/tickets/search",
 			Handler: c.TicketHandler.SearchTickets,
 		},
+		{
+			Method:  echo.POST,
+			Path:    "/payment/callback",
+			Handler: c.PaymentHandler.CallbackPayment,
+		},
 	}
 }
 
