@@ -41,11 +41,17 @@ func NewTicketServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.L
 	}
 }
 
+const MaxTicketCount = 1000
+
 func (s *TicketServiceImpl) CreateTicket(ctx context.Context, request *model.CreateTicketRequest) ([]*model.TicketResponse, error) {
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
 	if err := s.Validate.Struct(request); err != nil {
+		return nil, domainErrors.ErrBadRequest
+	}
+
+	if request.Count < 0 || request.Count > MaxTicketCount {
 		return nil, domainErrors.ErrBadRequest
 	}
 

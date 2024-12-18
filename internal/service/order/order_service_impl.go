@@ -256,7 +256,7 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 		}
 
 		if validSortFields[request.Sort] && validOrders[request.Order] {
-			query = query.Order(fmt.Sprintf("%s %s", request.Sort, request.Order))
+			query = query.Order(clause.OrderByColumn{Column: clause.Column{Name: request.Sort}, Desc: request.Order == "desc"})
 		} else {
 			query = query.Order("created_at DESC")
 		}
