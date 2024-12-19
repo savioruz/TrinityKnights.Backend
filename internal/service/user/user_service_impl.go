@@ -77,12 +77,26 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 		return nil, domainErrors.ErrInternalServer
 	}
 
+	
+
+	token := uuid.NewString()
+	var replaceEmail = struct {
+		Token string
+	}{
+		Token: token,
+	}
+
+	
+
+	
 	data := &entity.User{
-		ID:       uuid.New().String(),
+		ID:       uuid.NewString(),
 		Email:    request.Email,
 		Password: string(password),
 		Name:     request.Name,
 		Role:     role,
+		VerifyEmailToken: token,
+		IsVerify: false,
 		Status:   true,
 	}
 
@@ -94,6 +108,26 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	if err := tx.Commit().Error; err != nil {
 		s.Log.Errorf("failed to commit transaction: %v", err)
 		return nil, domainErrors.ErrInternalServer
+	}
+
+	templatePath := "template/verify-email.html"
+	tmpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		return nil, err
+	}
+	var body bytes.Buffer
+	if err := tmpl.Execute(&body, &replaceEmail); err != nil {
+		return nil, err
+	}
+	
+	m := &model.SendEmail{
+		EmailTo:   data.Email,
+		EmailFrom: s.Viper.GetString("SMTP_USERNAME"),
+		Subject:   "Reset Password Request",
+		Body:      body,
+	}
+	if err := s.sendEmail(m); err != nil {
+		return nil, err
 	}
 
 	return converter.UserToResponse(data), nil
@@ -286,7 +320,7 @@ func (s *UserServiceImpl) RequestReset(ctx context.Context, request *model.Reque
 		Name:          existingUser.Name,
 		Role:          existingUser.Role,
 		Status:        existingUser.Status,
-		ResetPasswordToken: existingUser.ResetPasswordToken,
+		ResetPasswordToken: token,
 	}
 	if err := s.UserRepository.Update(tx, update); err != nil {
 		s.Log.Errorf("failed to update user: %v", err)
@@ -301,37 +335,77 @@ func (s *UserServiceImpl) RequestReset(ctx context.Context, request *model.Reque
 	return &model.ResponseReset{Status: "success"}, nil
 }
 
-func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.ResetPassword) error {
-	// // Validasi input password
-	// if err := s.Validate.Struct(request); err != nil {
-	// 	return errors.New("invalid input")
-	// }
+func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.ResetPassword) (*model.ResponseReset, error) {
+	if err := s.Validate.Struct(request); err != nil {
+		return nil, domainErrors.ErrBadRequest
+	}
 
-	// // Cari pengguna berdasarkan email
-	// user, err := s.UserRepository.GetByEmail(ctx, request.Email)
-	// if err != nil {
-	// 	return errors.New("email tersebut tidak ditemukan")
-	// }
+	tx := s.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
 
-	// // Validasi token reset password
-	// if user.ResetPasswordToken != request.Token {
-	// 	return errors.New("invalid or expired reset token")
-	// }
+	if err := s.Validate.Struct(request); err != nil {
+		return nil, domainErrors.ErrBadRequest
+	}
 
-	// // Hash password baru
-	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	return err
-	// }
-	// user.Password = string(hashedPassword)
-	// user.ResetPasswordToken = "" // Hapus token setelah password berhasil direset
+	user := &entity.User{}
+	if err := s.UserRepository.GetByResetPasswordToken(tx, user, request.Token);err != nil {
+		s.Log.Errorf("failed to get user by reset password token: %v", err)
+		return nil, domainErrors.ErrNotFound
+	}
 
-	// // Update password pengguna di database
-	// if err := s.UserRepository.Update(ctx, user); err != nil {
-	// 	return err
-	// }
 
-	return nil
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		s.Log.Errorf("failed to generate password: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+	
+	user.Password = string(hashedPassword)
+	err = s.UserRepository.Update(tx, user)
+	if err != nil {
+		s.Log.Errorf("failed to update user: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		s.Log.Errorf("failed to commit transaction: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+	
+
+	return &model.ResponseReset{Status: "success"}, nil
+}
+
+func (s *UserServiceImpl) VerifyEmail(ctx context.Context, request *model.VerifyEmail) (*model.ResponseReset, error) {
+	if err := s.Validate.Struct(request); err != nil {
+		return nil, domainErrors.ErrBadRequest
+	}
+
+	tx := s.DB.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	user := &entity.User{}
+	if err := s.UserRepository.GetByVerifyEmailToken(tx, user, request.Token);err != nil {
+		s.Log.Errorf("failed to get user by reset password token: %v", err)
+		return nil, domainErrors.ErrNotFound
+	}
+
+	if request.Token != user.VerifyEmailToken {
+		return nil, domainErrors.ErrBadRequest
+	}
+
+	user.IsVerify = true
+	if err := s.UserRepository.Update(tx, user); err != nil {
+		s.Log.Errorf("failed to update user: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		s.Log.Errorf("failed to commit transaction: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	return &model.ResponseReset{Status: "success"}, nil
 }
 
 func (s *UserServiceImpl) sendEmail(request *model.SendEmail) error {

@@ -9,6 +9,8 @@ type User struct {
 	Name     string `json:"name" gorm:"not null"`
 	Role     string `json:"role" gorm:"not null"`
 	Status   bool   `json:"status" gorm:"not null"`
+	VerifyEmailToken   string `json:"verify_email_token" gorm:"null"`
+	IsVerify           bool   `json:"is_verify" gorm:"not null"`
 	ResetPasswordToken string `json:"reset_password_token" gorm:"null"`
 	gorm.Model
 }

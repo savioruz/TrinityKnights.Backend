@@ -52,6 +52,10 @@ type ResetPassword struct {
 	NewPassword string `json:"new_password" validate:"required,min=8,lte=255"`
 }
 
+type VerifyEmail struct {
+	Token string `param:"token" validate:"required"`
+}
+
 type SendEmail struct {
 	EmailTo   string `json:"email_to" validate:"required,email,lte=100"`
 	EmailFrom string `json:"email_from" validate:"required,email,lte=100"`
