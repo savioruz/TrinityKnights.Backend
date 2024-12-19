@@ -8,4 +8,5 @@ type UserHandler interface {
 	Profile(ctx echo.Context) error
 	Update(ctx echo.Context) error
 	RefreshToken(ctx echo.Context) error
+	RequestReset(ctx echo.Context) error
 }

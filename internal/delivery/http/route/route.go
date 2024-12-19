@@ -48,6 +48,11 @@ func (c Config) PublicRoute() []route.Route {
 			Handler: c.UserHandler.RefreshToken,
 		},
 		{
+			Method:  echo.POST,
+			Path:    "/users/request-reset",
+			Handler: c.UserHandler.RequestReset,
+		},
+		{
 			Method:  echo.GET,
 			Path:    "/events/:id",
 			Handler: c.EventHandler.GetEventByID,

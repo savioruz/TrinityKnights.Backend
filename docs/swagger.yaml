@@ -159,6 +159,8 @@ definitions:
     properties:
       amount:
         type: integer
+      bank_code:
+        type: string
       created:
         type: string
       currency:
@@ -191,24 +193,6 @@ definitions:
         type: string
       user_id:
         type: string
-    required:
-    - amount
-    - created
-    - currency
-    - description
-    - external_id
-    - id
-    - is_high
-    - merchant_name
-    - paid_amount
-    - paid_at
-    - payer_email
-    - payment_channel
-    - payment_destination
-    - payment_method
-    - status
-    - updated
-    - user_id
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.PaymentCallbackResponse:
     properties:
@@ -253,6 +237,14 @@ definitions:
     - email
     - name
     - password
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.RequestReset:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+    required:
+    - email
     type: object
   ? github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_EventResponse
   : properties:
@@ -316,6 +308,15 @@ definitions:
       paging:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
     type: object
+  ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_ResponseReset
+  : properties:
+      data:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.ResponseReset'
+      error:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      paging:
+        $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
   ? github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse
   : properties:
       data:
@@ -351,6 +352,11 @@ definitions:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       paging:
         $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata'
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.ResponseReset:
+    properties:
+      status:
+        type: string
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.TicketResponse:
     properties:
@@ -1211,6 +1217,40 @@ paths:
           schema:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       summary: Refresh token
+      tags:
+      - user
+  /users/request-reset:
+    post:
+      consumes:
+      - application/json
+      description: Request reset password via email
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.RequestReset'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_ResponseReset'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
+      summary: Request reset password via email
       tags:
       - user
   /venues:
