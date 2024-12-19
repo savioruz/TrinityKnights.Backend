@@ -2078,6 +2078,20 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_ResponseReset": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.ResponseReset"
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse": {
             "type": "object",
             "properties": {
