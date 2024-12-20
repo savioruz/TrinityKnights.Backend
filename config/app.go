@@ -25,6 +25,7 @@ import (
 	serviceUser "github.com/TrinityKnights/Backend/internal/service/user"
 	serviceVenue "github.com/TrinityKnights/Backend/internal/service/venue"
 	"github.com/TrinityKnights/Backend/pkg/cache"
+	"github.com/TrinityKnights/Backend/pkg/gomail"
 	"github.com/TrinityKnights/Backend/pkg/jwt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -44,7 +45,7 @@ type BootstrapConfig struct {
 	JWT      *jwt.JWTConfig
 	Viper    *viper.Viper
 	Xendit   *xendit.APIClient
-	Gomail   *gomail.Dialer
+	Gomail   *gomail.ImplGomail
 }
 
 func Bootstrap(config *BootstrapConfig) error {
@@ -60,7 +61,7 @@ func Bootstrap(config *BootstrapConfig) error {
 	orderRepository := repositoryOrder.NewOrderRepository(config.DB, config.Log)
 
 	// Initialize service
-	userService := serviceUser.NewUserServiceImpl(config.DB, config.Log, config.Validate, userRepository, jwtService, config.Viper)
+	userService := serviceUser.NewUserServiceImpl(config.DB, config.Log, config.Validate, userRepository, jwtService, config.Gomail)
 	venueService := serviceVenue.NewVenueServiceImpl(config.DB, config.Cache, config.Log, config.Validate, venueRepository)
 	eventService := serviceEvent.NewEventServiceImpl(config.DB, config.Cache, config.Log, config.Validate, eventRepository)
 	ticketService := serviceTicket.NewTicketServiceImpl(config.DB, config.Cache, config.Log, config.Validate, ticketRepository)

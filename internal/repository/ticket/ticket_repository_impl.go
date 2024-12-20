@@ -27,12 +27,24 @@ func (r *TicketRepositoryImpl) CreateBatch(db *gorm.DB, tickets []*entity.Ticket
 func (r *TicketRepositoryImpl) Find(db *gorm.DB, opts *model.TicketQueryOptions) ([]*entity.Ticket, error) {
 	query := db.Model(&entity.Ticket{})
 
+	if opts.ID != nil {
+		query = query.Where("UPPER(id) = UPPER(?)", *opts.ID)
+	}
+
 	if opts.EventID != nil {
 		query = query.Where("event_id = ?", *opts.EventID)
 	}
 
+	if opts.OrderID != nil {
+		query = query.Where("order_id = ?", *opts.OrderID)
+	}
+
+	if opts.Price != nil {
+		query = query.Where("price = ?", *opts.Price)
+	}
+
 	if len(opts.SeatNumbers) > 0 {
-		query = query.Where("seat_number IN (?)", opts.SeatNumbers)
+		query = query.Where("UPPER(seat_number) IN (?)", opts.SeatNumbers)
 	}
 
 	var tickets []*entity.Ticket
