@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"html/template"
+	"time"
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
@@ -98,6 +99,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 		VerifyEmailToken: token,
 		IsVerified:       false,
 		Status:           true,
+		LastLogin:        nil,
 	}
 
 	if err := s.UserRepository.Create(tx, data); err != nil {
@@ -164,6 +166,18 @@ func (s *UserServiceImpl) Login(ctx context.Context, request *model.LoginRequest
 	refreshToken, err := s.JWTService.GenerateRefreshToken(data.ID, data.Email, data.Role)
 	if err != nil {
 		s.Log.Errorf("failed to generate refresh token: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	t := time.Now()
+	data.LastLogin = &t
+	if err := s.UserRepository.Update(tx, data); err != nil {
+		s.Log.Errorf("failed to update user: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		s.Log.Errorf("failed to commit transaction: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
 

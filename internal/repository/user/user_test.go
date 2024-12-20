@@ -38,6 +38,7 @@ func TestRepositoryImpl_Create(t *testing.T) {
 		Name:               "Test User",
 		Role:               "admin",
 		Status:             true,
+		LastLogin:          nil,
 		VerifyEmailToken:   "",
 		IsVerified:         false,
 		ResetPasswordToken: "",
@@ -45,7 +46,7 @@ func TestRepositoryImpl_Create(t *testing.T) {
 
 	// Mock the query for Create
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`id`,`email`,`password`,`name`,`role`,`status`,`verify_email_token`,`reset_password_token`,`is_verified`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`id`,`email`,`password`,`name`,`role`,`status`,`last_login`,`verify_email_token`,`reset_password_token`,`is_verified`,`created_at`,`updated_at`,`deleted_at`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)")).
 		WithArgs(
 			expectedUser.ID,
 			expectedUser.Email,
@@ -53,6 +54,7 @@ func TestRepositoryImpl_Create(t *testing.T) {
 			expectedUser.Name,
 			expectedUser.Role,
 			expectedUser.Status,
+			expectedUser.LastLogin,
 			expectedUser.VerifyEmailToken,
 			expectedUser.ResetPasswordToken,
 			expectedUser.IsVerified,
@@ -95,6 +97,7 @@ func TestRepositoryImpl_Update(t *testing.T) {
 		Name:               "Test User",
 		Role:               "admin",
 		Status:             true,
+		LastLogin:          nil,
 		VerifyEmailToken:   "",
 		IsVerified:         false,
 		ResetPasswordToken: "",
@@ -102,13 +105,14 @@ func TestRepositoryImpl_Update(t *testing.T) {
 
 	// Mock the query for Update
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `email`=?,`password`=?,`name`=?,`role`=?,`status`=?,`verify_email_token`=?,`reset_password_token`=?,`is_verified`=?,`created_at`=?,`updated_at`=?,`deleted_at`=? WHERE `users`.`deleted_at` IS NULL AND `id` = ?")).
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `email`=?,`password`=?,`name`=?,`role`=?,`status`=?,`last_login`=?,`verify_email_token`=?,`reset_password_token`=?,`is_verified`=?,`created_at`=?,`updated_at`=?,`deleted_at`=? WHERE `users`.`deleted_at` IS NULL AND `id` = ?")).
 		WithArgs(
 			expectedUser.Email,
 			expectedUser.Password,
 			expectedUser.Name,
 			expectedUser.Role,
 			expectedUser.Status,
+			expectedUser.LastLogin,
 			expectedUser.VerifyEmailToken,
 			expectedUser.ResetPasswordToken,
 			expectedUser.IsVerified,

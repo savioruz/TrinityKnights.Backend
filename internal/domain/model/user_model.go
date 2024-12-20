@@ -1,13 +1,14 @@
 package model
 
 type UserResponse struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	Status    bool   `json:"status"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	Role      string  `json:"role"`
+	Status    bool    `json:"status"`
+	LastLogin *string `json:"last_login,omitempty"`
+	CreatedAt string  `json:"created_at"`
+	UpdatedAt string  `json:"updated_at"`
 }
 
 type RegisterRequest struct {
