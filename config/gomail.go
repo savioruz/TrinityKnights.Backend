@@ -1,27 +1,25 @@
 package config
 
 import (
-	"github.com/caarlos0/env/v6"
+	"github.com/spf13/viper"
+	"gopkg.in/gomail.v2"
 )
 
-// Config menyimpan semua konfigurasi aplikasi, termasuk SMTPConfig
-type Config struct {
-	SMTP SMTPConfig `envPrefix:"SMTP_"`
+type SMTP struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
 }
 
-// SMTPConfig menyimpan konfigurasi SMTP untuk pengiriman email
-type SMTPConfig struct {
-	Host     string `env:"HOST" envDefault:"localhost"` // Host SMTP
-	Port     int    `env:"PORT" envDefault:"587"`       // Port SMTP (default: 587 untuk TLS)
-	Email    string `env:"EMAIL"`                       // Email pengirim
-	Password string `env:"PASSWORD"`                    // Password email
-}
-
-// LoadConfig membaca konfigurasi dari environment variables
-func LoadConfig() (*Config, error) {
-	cfg := &Config{}
-	if err := env.Parse(cfg); err != nil {
-		return nil, err
+func NewGomail(viper *viper.Viper) *gomail.Dialer {
+	smtp := &SMTP{
+		Host:     viper.GetString("SMTP_HOST"),
+		Port:     viper.GetInt("SMTP_PORT"),
+		Username: viper.GetString("SMTP_USERNAME"),
+		Password: viper.GetString("SMTP_PASSWORD"),
 	}
-	return cfg, nil
+
+	return gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
 }
+

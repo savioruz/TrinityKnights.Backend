@@ -36,3 +36,11 @@ func (r *UserRepositoryImpl) CountByRole(db *gorm.DB, role string) (int64, error
 	err := db.Model(&entity.User{}).Where("role = ?", role).Count(&count).Error
 	return count, err
 }
+
+func (r *UserRepositoryImpl) GetByResetPasswordToken(db *gorm.DB, user *entity.User, token string) error  {
+	return db.Where("reset_password_token = ?", token).Take(&user).Error
+}
+
+func (r *UserRepositoryImpl) GetByVerifyEmailToken(db *gorm.DB, user *entity.User, token string) error  { 
+	return db.Where("verify_email_token = ?", token).Take(&user).Error 
+} 
