@@ -32,7 +32,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/xendit/xendit-go/v6"
-	"gopkg.in/gomail.v2"
 	"gorm.io/gorm"
 )
 
