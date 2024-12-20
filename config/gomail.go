@@ -7,6 +7,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
+// NewGomail creates a new gomail client
 func NewGomail(viper *viper.Viper, log *logrus.Logger) *g.ImplGomail {
 	dialer := gomail.NewDialer(
 		viper.GetString("SMTP_HOST"),
