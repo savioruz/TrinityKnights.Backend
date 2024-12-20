@@ -16,9 +16,7 @@ func NewGomail(viper *viper.Viper, log *logrus.Logger) *g.ImplGomail {
 	)
 
 	if _, err := dialer.Dial(); err != nil {
-		log.Errorf("failed to connect to SMTP server: %v", err)
-	} else {
-		log.Info("Successfully connected to SMTP server")
+		log.Fatalf("failed to connect to SMTP server: %v", err)
 	}
 
 	return g.NewGomail(dialer, viper.GetString("SMTP_USERNAME"))
