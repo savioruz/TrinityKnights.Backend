@@ -28,14 +28,14 @@ type PaymentServiceImpl struct {
 	helper            *helper.ContextHelper
 }
 
-func NewPaymentServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, paymentRepository payment.PaymentRepository, xendit *xendit.APIClient) *PaymentServiceImpl {
+func NewPaymentServiceImpl(db *gorm.DB, cacheImpl *cache.ImplCache, log *logrus.Logger, validate *validator.Validate, paymentRepository payment.PaymentRepository, x *xendit.APIClient) *PaymentServiceImpl {
 	return &PaymentServiceImpl{
 		DB:                db,
 		Cache:             cacheImpl,
 		Log:               log,
 		Validate:          validate,
 		PaymentRepository: paymentRepository,
-		Xendit:            xendit,
+		Xendit:            x,
 		helper:            helper.NewContextHelper(),
 	}
 }
@@ -74,7 +74,7 @@ func (s *PaymentServiceImpl) CreateInvoice(ctx context.Context, tx *gorm.DB, req
 		ShouldSendEmail: &shouldSendEmail,
 	}
 
-	invoice, _, err := s.Xendit.InvoiceApi.CreateInvoice(ctx).
+	i, _, err := s.Xendit.InvoiceApi.CreateInvoice(ctx).
 		CreateInvoiceRequest(createInvoiceRequest).
 		Execute()
 	if err != nil {
@@ -82,27 +82,27 @@ func (s *PaymentServiceImpl) CreateInvoice(ctx context.Context, tx *gorm.DB, req
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Create payment record
-	payment := &entity.Payment{
+	// Create p record
+	p := &entity.Payment{
 		OrderID:       order.ID,
-		TransactionID: *invoice.Id,
+		TransactionID: *i.Id,
 		Method:        nil,
 		Amount:        request.Amount,
-		Status:        model.PaymentStatus(invoice.Status),
+		Status:        model.PaymentStatus(i.Status),
 	}
 
-	if err := tx.Create(payment).Error; err != nil {
+	if err := tx.Create(p).Error; err != nil {
 		s.Log.Errorf("failed to create payment record: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
 
 	return &model.PaymentResponse{
-		ID:         payment.ID,
-		OrderID:    payment.OrderID,
+		ID:         p.ID,
+		OrderID:    p.OrderID,
 		Amount:     request.Amount,
-		Status:     string(invoice.Status),
-		ExpiryDate: invoice.ExpiryDate.Format(time.RFC3339),
-		PaymentURL: invoice.InvoiceUrl,
+		Status:     string(i.Status),
+		ExpiryDate: i.ExpiryDate.Format(time.RFC3339),
+		PaymentURL: i.InvoiceUrl,
 	}, nil
 }
 
