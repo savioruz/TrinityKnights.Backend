@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     name varchar(100) NOT NULL,
     role varchar(5) NOT NULL,
     status boolean NOT NULL,
+    last_login timestamp with time zone,
     reset_password_token varchar(255),
     verify_email_token varchar(255),
     is_verified boolean NOT NULL DEFAULT false,
