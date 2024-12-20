@@ -1248,9 +1248,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Email verified",
                         "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VerifyResponse"
+                            "type": "string"
                         }
                     },
                     "400": {

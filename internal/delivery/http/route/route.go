@@ -1,6 +1,8 @@
 package route
 
 import (
+	"net/http"
+
 	graphql "github.com/TrinityKnights/Backend/internal/delivery/graph/handler"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/event"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/order"
@@ -8,6 +10,7 @@ import (
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/ticket"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/user"
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler/venue"
+	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/pkg/route"
 	"github.com/labstack/echo/v4"
 	swagger "github.com/swaggo/echo-swagger"
@@ -106,7 +109,7 @@ func (c Config) PrivateRoute() []route.Route {
 			Method:  echo.GET,
 			Path:    "/users",
 			Handler: c.UserHandler.Profile,
-			Roles:   []string{"admin"},
+			Roles:   []string{"buyer", "admin"},
 		},
 		{
 			Method:  echo.PUT,
@@ -194,5 +197,11 @@ func (c Config) SwaggerRoutes() {
 
 	c.App.GET("/", func(ctx echo.Context) error {
 		return ctx.Redirect(301, "/swagger/index.html")
+	})
+}
+
+func (c Config) NotFoundRoute() {
+	c.App.Any("*", func(ctx echo.Context) error {
+		return ctx.JSON(http.StatusNotFound, model.NewErrorResponse[any](http.StatusNotFound, "Route not found"))
 	})
 }

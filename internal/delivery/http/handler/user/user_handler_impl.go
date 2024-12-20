@@ -269,7 +269,7 @@ func (h *UserHandlerImpl) ResetPassword(ctx echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param user body model.VerifyRequest true "User data"
-// @Success 200 {object} model.Response[model.VerifyResponse]
+// @Success 200 {string} string "Email verified"
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
 // @Failure 500 {object} model.Error
@@ -281,7 +281,7 @@ func (h *UserHandlerImpl) VerifyEmail(ctx echo.Context) error {
 		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
 	}
 
-	response, err := h.User.VerifyEmail(ctx.Request().Context(), request)
+	_, err := h.User.VerifyEmail(ctx.Request().Context(), request)
 	if err != nil {
 		h.Log.Errorf("failed to verify email: %v", err)
 		switch {
@@ -294,5 +294,5 @@ func (h *UserHandlerImpl) VerifyEmail(ctx echo.Context) error {
 		}
 	}
 
-	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
+	return ctx.String(http.StatusOK, "Email verified")
 }

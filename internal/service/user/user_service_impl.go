@@ -7,6 +7,8 @@ import (
 	"html/template"
 	"time"
 
+	"embed"
+
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 	"github.com/TrinityKnights/Backend/internal/domain/model/converter"
@@ -21,6 +23,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
+
+//go:embed template/*.html
+var templateFS embed.FS
 
 type UserServiceImpl struct {
 	DB             *gorm.DB
@@ -53,11 +58,12 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	defer tx.Rollback()
 
 	existingUser := &entity.User{}
-	if err := s.UserRepository.GetByEmail(tx, existingUser, request.Email); err == nil {
+	err := s.UserRepository.GetByEmail(tx, existingUser, request.Email)
+	if err == nil {
 		s.Log.Errorf("email already exists: %v", request.Email)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domainErrors.ErrNotFound
-		}
+		return nil, domainErrors.ErrBadRequest
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		s.Log.Errorf("failed to check existing user: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}
 
@@ -99,7 +105,6 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 		VerifyEmailToken: token,
 		IsVerified:       false,
 		Status:           true,
-		LastLogin:        nil,
 	}
 
 	if err := s.UserRepository.Create(tx, data); err != nil {
@@ -107,14 +112,15 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	templatePath := "template/verify-email.html"
-	tmpl, err := template.ParseFiles(templatePath)
+	tmpl, err := template.ParseFS(templateFS, "template/verify-email.html")
 	if err != nil {
-		return nil, err
+		s.Log.Errorf("failed to parse template: %v", err)
+		return nil, domainErrors.ErrInternalServer
 	}
 	var body bytes.Buffer
 	if err := tmpl.Execute(&body, &replaceEmail); err != nil {
-		return nil, err
+		s.Log.Errorf("failed to execute template: %v", err)
+		return nil, domainErrors.ErrInternalServer
 	}
 
 	emailRequest := &gomail.SendEmail{
@@ -329,21 +335,21 @@ func (s *UserServiceImpl) RequestReset(ctx context.Context, request *model.ReqRe
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	templatePath := "template/reset-password.html"
-	tmpl, err := template.ParseFiles(templatePath)
-	if err != nil {
-		return nil, err
-	}
-
 	var replaceEmail = struct {
 		Token string
 	}{
 		Token: token,
 	}
 
+	tmpl, err := template.ParseFS(templateFS, "template/reset-password.html")
+	if err != nil {
+		s.Log.Errorf("failed to parse template: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
 	var body bytes.Buffer
 	if err := tmpl.Execute(&body, &replaceEmail); err != nil {
-		return nil, err
+		s.Log.Errorf("failed to execute template: %v", err)
+		return nil, domainErrors.ErrInternalServer
 	}
 
 	emailRequest := &gomail.SendEmail{
