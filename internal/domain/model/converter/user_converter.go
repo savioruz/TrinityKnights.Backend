@@ -8,14 +8,19 @@ import (
 )
 
 func UserToResponse(user *entity.User) *model.UserResponse {
-	lastLogin := user.LastLogin.Format(time.RFC3339)
+	var lastLogin *string
+	if user.LastLogin != nil {
+		formatted := user.LastLogin.Format(time.RFC3339)
+		lastLogin = &formatted
+	}
+
 	return &model.UserResponse{
 		ID:        user.ID,
 		Email:     user.Email,
 		Name:      user.Name,
 		Role:      user.Role,
 		Status:    user.Status,
-		LastLogin: &lastLogin,
+		LastLogin: lastLogin,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
 	}
