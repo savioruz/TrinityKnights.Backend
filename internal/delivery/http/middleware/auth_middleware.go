@@ -10,7 +10,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const contextKey = "claims"
+type contextKeyType string
+
+const contextKey contextKeyType = "claims"
 
 func AuthMiddleware(jwtService jwt.JWTService) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -38,7 +40,7 @@ func AuthMiddleware(jwtService jwt.JWTService) echo.MiddlewareFunc {
 				return errMessage("Invalid token")
 			}
 
-			c.Set(contextKey, claims)
+			c.Set(string(contextKey), claims)
 
 			ctx := context.WithValue(c.Request().Context(), contextKey, claims)
 			c.SetRequest(c.Request().WithContext(ctx))
