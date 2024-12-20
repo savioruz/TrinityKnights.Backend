@@ -1,7 +1,5 @@
 package model
 
-import "bytes"
-
 type UserResponse struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
@@ -38,27 +36,20 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
 }
 
-type RequestReset struct {
+type ReqResetPasswordRequest struct {
 	Email string `json:"email" validate:"required,email,lte=100"`
 }
 
-type ResponseReset struct {
+type VerifyResponse struct {
 	Status string `json:"status"`
 }
 
-type ResetPassword struct {
+type ResetPasswordRequest struct {
 	Token       string `param:"token" validate:"required"`
 	Email       string `json:"email" validate:"required,email,lte=100"`
 	NewPassword string `json:"new_password" validate:"required,min=8,lte=255"`
 }
 
-type VerifyEmail struct {
+type VerifyRequest struct {
 	Token string `param:"token" validate:"required"`
-}
-
-type SendEmail struct {
-	EmailTo   string `json:"email_to" validate:"required,email,lte=100"`
-	EmailFrom string `json:"email_from" validate:"required,email,lte=100"`
-	Subject   string `json:"subject" validate:"required,lte=100"`
-	Body      bytes.Buffer `json:"body" validate:"required"`
 }

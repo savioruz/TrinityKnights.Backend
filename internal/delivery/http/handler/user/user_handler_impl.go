@@ -198,39 +198,34 @@ func (h *UserHandlerImpl) RefreshToken(ctx echo.Context) error {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body model.RequestReset true "User data"
-// @Success 200 {object} model.Response[model.ResponseReset]
+// @Param user body model.ReqResetPasswordRequest true "User data"
+// @Success 200 {object} model.Response[model.VerifyResponse]
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
 // @Failure 500 {object} model.Error
 // @Router /users/request-reset [post]
 func (h *UserHandlerImpl) RequestReset(ctx echo.Context) error {
-	// Binding request to model
-	request := new(model.RequestReset)
+	request := new(model.ReqResetPasswordRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
 	}
 
-	// Create a RequestResetPassword model from the email
-	resetRequest := &model.RequestReset{
-		Email: request.Email,
-	}
-
-	// Call the service method
-	response, err := h.User.RequestReset(ctx.Request().Context(), resetRequest)
+	response, err := h.User.RequestReset(ctx.Request().Context(), request)
 	if err != nil {
 		h.Log.Errorf("failed to request reset password: %v", err)
 		switch {
 		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
 			return handler.HandleError(ctx, 400, err)
 		case errors.Is(err, errors.New(http.StatusText(http.StatusNotFound))):
-	}}
+			return handler.HandleError(ctx, 404, err)
+		default:
+			return handler.HandleError(ctx, 500, err)
+		}
+	}
 
-	// Send success response
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
-
 
 // ResetPassword function is a handler to reset password
 // @Summary Reset password
@@ -238,14 +233,14 @@ func (h *UserHandlerImpl) RequestReset(ctx echo.Context) error {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body model.ResetPassword true "User data"
-// @Success 200 {object} model.Response[model.ResponseReset]
+// @Param user body model.ResetPasswordRequest true "User data"
+// @Success 200 {object} model.Response[model.VerifyResponse]
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
 // @Failure 500 {object} model.Error
 // @Router /users/reset-password [post]
 func (h *UserHandlerImpl) ResetPassword(ctx echo.Context) error {
-	request := new(model.ResetPassword)
+	request := new(model.ResetPasswordRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))
@@ -273,14 +268,14 @@ func (h *UserHandlerImpl) ResetPassword(ctx echo.Context) error {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body model.VerifyEmailRequest true "User data"
-// @Success 200 {object} model.Response[model.ResponseReset]
+// @Param user body model.VerifyRequest true "User data"
+// @Success 200 {object} model.Response[model.VerifyResponse]
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
 // @Failure 500 {object} model.Error
 // @Router /users/verify-email [get]
-func (h *UserHandlerImpl) VerifyEmail(ctx echo.Context) error{
-	request := new(model.VerifyEmail)
+func (h *UserHandlerImpl) VerifyEmail(ctx echo.Context) error {
+	request := new(model.VerifyRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, 400, errors.New(http.StatusText(http.StatusBadRequest)))

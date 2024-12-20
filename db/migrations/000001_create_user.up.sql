@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     status boolean NOT NULL,
     reset_password_token varchar(255),
     verify_email_token varchar(255),
-    is_verify boolean NOT NULL DEFAULT false,
+    is_verified boolean NOT NULL DEFAULT false,
     created_at timestamp with time zone,
     updated_at timestamp with time zone,
     deleted_at timestamp with time zone,
