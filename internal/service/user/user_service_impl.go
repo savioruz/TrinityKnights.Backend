@@ -31,14 +31,14 @@ type UserServiceImpl struct {
 	helper         *helper.ContextHelper
 }
 
-func NewUserServiceImpl(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *user.UserRepositoryImpl, jwtService jwt.JWTService, gomail *gomail.ImplGomail) *UserServiceImpl {
+func NewUserServiceImpl(db *gorm.DB, log *logrus.Logger, validate *validator.Validate, userRepository *user.UserRepositoryImpl, jwtService jwt.JWTService, mail *gomail.ImplGomail) *UserServiceImpl {
 	return &UserServiceImpl{
 		DB:             db,
 		Log:            log,
 		Validate:       validate,
 		UserRepository: userRepository,
 		JWTService:     jwtService,
-		Gomail:         gomail,
+		Gomail:         mail,
 		helper:         helper.NewContextHelper(),
 	}
 }
@@ -353,8 +353,8 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.Rese
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	user := &entity.User{}
-	if err := s.UserRepository.GetByResetPasswordToken(tx, user, request.Token); err != nil {
+	u := &entity.User{}
+	if err := s.UserRepository.GetByResetPasswordToken(tx, u, request.Token); err != nil {
 		s.Log.Errorf("failed to get user by reset password token: %v", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, domainErrors.ErrNotFound
@@ -362,7 +362,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.Rese
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	if request.Token != user.ResetPasswordToken {
+	if request.Token != u.ResetPasswordToken {
 		return nil, domainErrors.ErrBadRequest
 	}
 
@@ -372,8 +372,8 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.Rese
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	user.Password = string(hashedPassword)
-	err = s.UserRepository.Update(tx, user)
+	u.Password = string(hashedPassword)
+	err = s.UserRepository.Update(tx, u)
 	if err != nil {
 		s.Log.Errorf("failed to update user: %v", err)
 		return nil, domainErrors.ErrInternalServer
@@ -395,8 +395,8 @@ func (s *UserServiceImpl) VerifyEmail(ctx context.Context, request *model.Verify
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	user := &entity.User{}
-	if err := s.UserRepository.GetByVerifyEmailToken(tx, user, request.Token); err != nil {
+	u := &entity.User{}
+	if err := s.UserRepository.GetByVerifyEmailToken(tx, u, request.Token); err != nil {
 		s.Log.Errorf("failed to get user by reset password token: %v", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, domainErrors.ErrNotFound
@@ -404,12 +404,12 @@ func (s *UserServiceImpl) VerifyEmail(ctx context.Context, request *model.Verify
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	if request.Token != user.VerifyEmailToken {
+	if request.Token != u.VerifyEmailToken {
 		return nil, domainErrors.ErrBadRequest
 	}
 
-	user.IsVerified = true
-	if err := s.UserRepository.Update(tx, user); err != nil {
+	u.IsVerified = true
+	if err := s.UserRepository.Update(tx, u); err != nil {
 		s.Log.Errorf("failed to update user: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}

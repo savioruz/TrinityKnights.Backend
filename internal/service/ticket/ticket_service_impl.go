@@ -152,7 +152,7 @@ func (s *TicketServiceImpl) GetTicketByID(ctx context.Context, request *model.Ge
 
 	tx := s.DB.WithContext(ctx)
 
-	ticket, err := s.TicketRepository.Find(tx.Preload("Event").Preload("Order"), &model.TicketQueryOptions{
+	t, err := s.TicketRepository.Find(tx.Preload("Event").Preload("Order"), &model.TicketQueryOptions{
 		ID: &request.ID,
 	})
 	if err != nil {
@@ -163,11 +163,11 @@ func (s *TicketServiceImpl) GetTicketByID(ctx context.Context, request *model.Ge
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	if len(ticket) == 0 {
+	if len(t) == 0 {
 		return nil, domainErrors.ErrNotFound
 	}
 
-	response := converter.TicketEntityToResponse(ticket[0])
+	response := converter.TicketEntityToResponse(t[0])
 
 	if err := s.Cache.Set(key, response, 5*time.Minute); err != nil {
 		s.Log.Errorf("failed to set cache: %v", err)

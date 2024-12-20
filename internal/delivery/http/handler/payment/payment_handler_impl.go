@@ -18,9 +18,9 @@ type PaymentHandlerImpl struct {
 	PaymentService payment.PaymentService
 }
 
-func NewPaymentHandler(viper *viper.Viper, log *logrus.Logger, paymentService payment.PaymentService) PaymentHandler {
+func NewPaymentHandler(v *viper.Viper, log *logrus.Logger, paymentService payment.PaymentService) PaymentHandler {
 	return &PaymentHandlerImpl{
-		Viper:          viper,
+		Viper:          v,
 		Log:            log,
 		PaymentService: paymentService,
 	}

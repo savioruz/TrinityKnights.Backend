@@ -13,6 +13,12 @@ import (
 	"github.com/TrinityKnights/Backend/internal/domain/model"
 )
 
+type eventResponseResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
+type userResponseResolver struct{ *Resolver }
+type venueResponseResolver struct{ *Resolver }
+
 // ID is the resolver for the id field.
 func (r *eventResponseResolver) ID(ctx context.Context, obj *model.EventResponse) (int, error) {
 	return int(obj.ID), nil
@@ -41,12 +47,12 @@ func (r *eventResponseResolver) Venue(ctx context.Context, obj *model.EventRespo
 }
 
 // CreateEvent is the resolver for the createEvent field.
-func (r *mutationResolver) CreateEvent(ctx context.Context, name string, description string, date string, time string, venueID int) (*model.EventResponse, error) {
+func (r *mutationResolver) CreateEvent(ctx context.Context, name, description, date, t string, venueID int) (*model.EventResponse, error) {
 	event, err := r.EventService.CreateEvent(ctx, &model.CreateEventRequest{
 		Name:        name,
 		Description: description,
 		Date:        date,
-		Time:        time,
+		Time:        t,
 		VenueID:     uint(venueID),
 	})
 	if err != nil {
@@ -72,7 +78,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, input graphm
 }
 
 // CreateVenue is the resolver for the createVenue field.
-func (r *mutationResolver) CreateVenue(ctx context.Context, name string, address string, capacity int, city string, state string, zip string) (*model.VenueResponse, error) {
+func (r *mutationResolver) CreateVenue(ctx context.Context, name, address string, capacity int, city, state, zip string) (*model.VenueResponse, error) {
 	venue, err := r.VenueService.CreateVenue(ctx, &model.CreateVenueRequest{
 		Name:     name,
 		Address:  address,
@@ -169,7 +175,7 @@ func (r *queryResolver) Event(ctx context.Context, id int) (*model.EventResponse
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.EventsResponse, error) {
+func (r *queryResolver) Events(ctx context.Context, page, size *int, sort, order *string) (*graphmodel.EventsResponse, error) {
 	// Set default values
 	defaultPage := 1
 	defaultSize := 10
@@ -214,7 +220,7 @@ func (r *queryResolver) Events(ctx context.Context, page *int, size *int, sort *
 }
 
 // SearchEvents is the resolver for the searchEvents field.
-func (r *queryResolver) SearchEvents(ctx context.Context, name *string, description *string, date *string, time *string, venueID *int, page *int, size *int, sort *string, order *string) (*graphmodel.EventsResponse, error) {
+func (r *queryResolver) SearchEvents(ctx context.Context, name, description, date, t *string, venueID, page, size *int, sort, order *string) (*graphmodel.EventsResponse, error) {
 	defaultPage := 1
 	defaultSize := 10
 	defaultSort := "created_at"
@@ -236,8 +242,8 @@ func (r *queryResolver) SearchEvents(ctx context.Context, name *string, descript
 	}
 
 	var timeStr string
-	if time != nil {
-		timeStr = *time
+	if t != nil {
+		timeStr = *t
 	}
 
 	var venueIDUint uint
@@ -309,7 +315,7 @@ func (r *queryResolver) Ticket(ctx context.Context, id string) (*graphmodel.Tick
 }
 
 // Tickets is the resolver for the tickets field.
-func (r *queryResolver) Tickets(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.TicketsResponse, error) {
+func (r *queryResolver) Tickets(ctx context.Context, page, size *int, sort, order *string) (*graphmodel.TicketsResponse, error) {
 	defaultPage := 1
 	defaultSize := 10
 	defaultSort := "created_at"
@@ -366,7 +372,7 @@ func (r *queryResolver) Tickets(ctx context.Context, page *int, size *int, sort 
 }
 
 // SearchTickets is the resolver for the searchTickets field.
-func (r *queryResolver) SearchTickets(ctx context.Context, id *string, eventID *int, orderID *int, price *float64, typeArg *string, seatNumber *string, page *int, size *int, sort *string, order *string) (*graphmodel.TicketsResponse, error) {
+func (r *queryResolver) SearchTickets(ctx context.Context, id *string, eventID, orderID *int, price *float64, typeArg, seatNumber *string, page, size *int, sort, order *string) (*graphmodel.TicketsResponse, error) {
 	defaultPage := 1
 	defaultSize := 10
 	defaultSort := "created_at"
@@ -477,7 +483,7 @@ func (r *queryResolver) Venue(ctx context.Context, id int) (*model.VenueResponse
 }
 
 // Venues is the resolver for the venues field.
-func (r *queryResolver) Venues(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.VenuesResponse, error) {
+func (r *queryResolver) Venues(ctx context.Context, page, size *int, sort, order *string) (*graphmodel.VenuesResponse, error) {
 	defaultPage := 1
 	defaultSize := 10
 	defaultSort := "created_at"
@@ -520,7 +526,7 @@ func (r *queryResolver) Venues(ctx context.Context, page *int, size *int, sort *
 }
 
 // SearchVenues is the resolver for the searchVenues field.
-func (r *queryResolver) SearchVenues(ctx context.Context, name *string, address *string, capacity *int, city *string, state *string, zip *string, page *int, size *int, sort *string, order *string) (*graphmodel.VenuesResponse, error) {
+func (r *queryResolver) SearchVenues(ctx context.Context, name, address *string, capacity *int, city, state, zip *string, page, size *int, sort, order *string) (*graphmodel.VenuesResponse, error) {
 	defaultPage := 1
 	defaultSize := 10
 	defaultSort := "created_at"
@@ -641,9 +647,3 @@ func (r *Resolver) UserResponse() graph.UserResponseResolver { return &userRespo
 
 // VenueResponse returns graph.VenueResponseResolver implementation.
 func (r *Resolver) VenueResponse() graph.VenueResponseResolver { return &venueResponseResolver{r} }
-
-type eventResponseResolver struct{ *Resolver }
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
-type userResponseResolver struct{ *Resolver }
-type venueResponseResolver struct{ *Resolver }

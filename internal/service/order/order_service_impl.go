@@ -162,7 +162,7 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		Amount:  dataOrder.TotalPrice,
 	}
 
-	payment, err := s.PaymentService.CreateInvoice(ctx, tx, paymentRequest)
+	p, err := s.PaymentService.CreateInvoice(ctx, tx, paymentRequest)
 	if err != nil {
 		s.Log.Errorf("failed to create payment: %v", err)
 		return nil, domainErrors.ErrInternalServer
@@ -174,7 +174,7 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	}
 
 	response := converter.OrderEntityToResponse(&dataOrder)
-	response.Payment = payment
+	response.Payment = p
 
 	return response, nil
 }
