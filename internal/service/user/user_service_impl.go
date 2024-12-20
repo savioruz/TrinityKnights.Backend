@@ -335,21 +335,21 @@ func (s *UserServiceImpl) RequestReset(ctx context.Context, request *model.ReqRe
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	templatePath := "template/reset-password.html"
-	tmpl, err := template.ParseFiles(templatePath)
-	if err != nil {
-		return nil, err
-	}
-
 	var replaceEmail = struct {
 		Token string
 	}{
 		Token: token,
 	}
 
+	tmpl, err := template.ParseFS(templateFS, "template/reset-password.html")
+	if err != nil {
+		s.Log.Errorf("failed to parse template: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	}
 	var body bytes.Buffer
 	if err := tmpl.Execute(&body, &replaceEmail); err != nil {
-		return nil, err
+		s.Log.Errorf("failed to execute template: %v", err)
+		return nil, domainErrors.ErrInternalServer
 	}
 
 	emailRequest := &gomail.SendEmail{
