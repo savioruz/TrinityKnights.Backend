@@ -10,7 +10,7 @@ import (
 func UserToResponse(user *entity.User) *model.UserResponse {
 	var lastLogin *string
 	if user.LastLogin != nil {
-		formatted := user.LastLogin.Format(time.RFC3339)
+		formatted := user.LastLogin.UTC().Add(time.Hour * 7).Format(time.RFC3339)
 		lastLogin = &formatted
 	}
 
@@ -21,8 +21,8 @@ func UserToResponse(user *entity.User) *model.UserResponse {
 		Role:      user.Role,
 		Status:    user.Status,
 		LastLogin: lastLogin,
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
+		CreatedAt: user.CreatedAt.UTC().Add(time.Hour * 7).Format(time.RFC3339),
+		UpdatedAt: user.UpdatedAt.UTC().Add(time.Hour * 7).Format(time.RFC3339),
 	}
 }
 
