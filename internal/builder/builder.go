@@ -55,4 +55,7 @@ func (c *Config) BuildRoutes() {
 
 	// Swagger routes
 	c.Routes.SwaggerRoutes()
+
+	// Not found route
+	c.Routes.NotFoundRoute()
 }
