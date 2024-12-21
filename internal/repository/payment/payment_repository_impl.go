@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
@@ -33,32 +34,68 @@ func (r *PaymentRepositoryImpl) UpdatePaymentStatus(ctx context.Context, payment
 	return r.DB.Model(&entity.Payment{}).Where("id = ?", payment.ID).Updates(payment).Error
 }
 
-func (r *PaymentRepositoryImpl) Find(db *gorm.DB, filter *model.PaymentQueryOptions) ([]*entity.Payment, error) {
-	query := db.Model(&entity.Payment{})
+func (r *PaymentRepositoryImpl) Find(db *gorm.DB, opts *model.PaymentQueryOptions) ([]*entity.Payment, error) {
+	// First, get total count
+	var totalCount int64
+	countQuery := db.Model(&entity.Payment{})
 
-	if filter.ID != nil {
-		query = query.Where("id = ?", *filter.ID)
+	// Apply filters to count query
+	if opts.ID != nil {
+		countQuery = countQuery.Where("id = ?", *opts.ID)
+	}
+	if opts.OrderID != nil {
+		countQuery = countQuery.Where("order_id = ?", *opts.OrderID)
+	}
+	if opts.Amount != nil {
+		countQuery = countQuery.Where("amount = ?", *opts.Amount)
+	}
+	if opts.Status != nil {
+		countQuery = countQuery.Where("status = ?", *opts.Status)
 	}
 
-	if filter.OrderID != nil {
-		query = query.Where("order_id = ?", *filter.OrderID)
+	if err := countQuery.Count(&totalCount).Error; err != nil {
+		return nil, err
 	}
 
-	if filter.Method != nil {
-		query = query.Where("UPPER(method) = UPPER(?)", *filter.Method)
+	// Main query with preloads
+	query := db.Model(&entity.Payment{}).
+		Preload("Order") // Add Order preload
+
+	// Apply same filters to main query
+	if opts.ID != nil {
+		query = query.Where("id = ?", *opts.ID)
+	}
+	if opts.OrderID != nil {
+		query = query.Where("order_id = ?", *opts.OrderID)
+	}
+	if opts.Amount != nil {
+		query = query.Where("amount = ?", *opts.Amount)
+	}
+	if opts.Status != nil {
+		query = query.Where("status = ?", *opts.Status)
 	}
 
-	if filter.TransactionID != nil {
-		query = query.Where("transaction_id = ?", *filter.TransactionID)
+	// Apply pagination
+	if opts.Page > 0 && opts.Size > 0 {
+		offset := (opts.Page - 1) * opts.Size
+		query = query.Offset(offset).Limit(opts.Size)
 	}
 
-	if filter.Status != nil {
-		query = query.Where("UPPER(status) = UPPER(?)", *filter.Status)
+	// Apply sorting
+	if opts.Sort != "" && opts.Order != "" {
+		query = query.Order(fmt.Sprintf("%s %s", opts.Sort, opts.Order))
 	}
 
 	var payments []*entity.Payment
 	if err := query.Find(&payments).Error; err != nil {
 		return nil, err
+	}
+
+	// Store total count in the first payment's metadata
+	if len(payments) > 0 {
+		payments[0].Metadata = map[string]interface{}{
+			"total_count": totalCount,
+		}
 	}
 
 	return payments, nil

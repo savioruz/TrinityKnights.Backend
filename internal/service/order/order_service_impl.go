@@ -157,7 +157,7 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	}
 
 	// After creating the order and updating the tickets, create payment
-	paymentRequest := &model.PaymentRequest{
+	paymentRequest := &model.CreatePaymentRequest{
 		OrderID: dataOrder.ID,
 		Amount:  dataOrder.TotalPrice,
 	}
@@ -272,7 +272,12 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 
 	// Get paginated results
 	offset := (request.Page - 1) * request.Size
-	if err := query.Preload("Tickets").Preload("Payments").Offset(offset).Limit(request.Size).Find(&orders).Error; err != nil {
+	if err := query.Preload("Tickets").
+		Preload("Tickets.Event").
+		Preload("Payments").
+		Offset(offset).
+		Limit(request.Size).
+		Find(&orders).Error; err != nil {
 		s.Log.Errorf("failed to get orders: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}

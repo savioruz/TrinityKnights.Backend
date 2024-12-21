@@ -61,7 +61,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	err := s.UserRepository.GetByEmail(tx, existingUser, request.Email)
 	if err == nil {
 		s.Log.Errorf("email already exists: %v", request.Email)
-		return nil, domainErrors.ErrBadRequest
+		return nil, domainErrors.ErrEmailAlreadyExists
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		s.Log.Errorf("failed to check existing user: %v", err)
 		return nil, domainErrors.ErrInternalServer

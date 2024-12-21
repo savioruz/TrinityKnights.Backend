@@ -32,8 +32,8 @@ type GetTicketRequest struct {
 }
 
 type TicketsRequest struct {
-	Page  int    `query:"page" validate:"numeric"`
-	Size  int    `query:"size" validate:"numeric"`
+	Page  int    `query:"page" validate:"numeric,omitempty,gte=1"`
+	Size  int    `query:"size" validate:"numeric,omitempty,gte=1,lte=100"`
 	Sort  string `query:"sort" validate:"omitempty,oneof=id event_id eventId order_id orderID price type seat_number seatNumber"`
 	Order string `query:"order" validate:"omitempty"`
 }
@@ -45,8 +45,8 @@ type TicketSearchRequest struct {
 	Price      float64 `query:"price" validate:"omitempty"`
 	Type       string  `query:"type" validate:"omitempty"`
 	SeatNumber string  `query:"seat_number" validate:"omitempty"`
-	Page       int     `query:"page" validate:"numeric"`
-	Size       int     `query:"size" validate:"numeric"`
+	Page       int     `query:"page" validate:"numeric,omitempty,gte=1"`
+	Size       int     `query:"size" validate:"numeric,omitempty,gte=1,lte=100"`
 	Sort       string  `query:"sort" validate:"omitempty,oneof=id event_id eventId order_id orderID price type seat_number seatNumber"`
 	Order      string  `query:"order" validate:"omitempty"`
 }
@@ -59,7 +59,7 @@ type TicketQueryOptions struct {
 	Type        *string   `query:"type,omitempty" validate:"omitempty"`
 	SeatNumbers *[]string `query:"seat_numbers,omitempty" validate:"omitempty"`
 	Page        int       `query:"page,omitempty" validate:"omitempty,min=1"`
-	Size        int       `query:"size,omitempty" validate:"omitempty,max=50"`
+	Size        int       `query:"size,omitempty" validate:"omitempty,max=100"`
 	Sort        string    `query:"sort,omitempty" validate:"omitempty,oneof=id event_id eventId order_id orderID price type seat_number seatNumber"`
 	Order       string    `query:"order,omitempty" validate:"omitempty"`
 }

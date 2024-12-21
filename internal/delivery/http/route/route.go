@@ -189,6 +189,24 @@ func (c Config) PrivateRoute() []route.Route {
 			Handler: c.TicketHandler.UpdateTicket,
 			Roles:   []string{"admin"},
 		},
+		{
+			Method:  echo.GET,
+			Path:    "/payment/:id",
+			Handler: c.PaymentHandler.GetPaymentByID,
+			Roles:   []string{"admin"},
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/payment",
+			Handler: c.PaymentHandler.GetPayments,
+			Roles:   []string{"admin"},
+		},
+		{
+			Method:  echo.GET,
+			Path:    "/payment/search",
+			Handler: c.PaymentHandler.SearchPayments,
+			Roles:   []string{"admin"},
+		},
 	}
 }
 

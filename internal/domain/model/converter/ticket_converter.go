@@ -6,17 +6,18 @@ import (
 	"github.com/TrinityKnights/Backend/pkg/helper"
 )
 
-func ticketOrderToResponse(order *entity.Order, eventID uint) *model.OrderResponse {
+func ticketOrderToResponse(order *entity.Order, eventID *uint) *model.OrderResponse {
 	if order == nil || order.ID == 0 {
 		return nil
 	}
 
+	quantity := 1
 	return &model.OrderResponse{
 		ID:         order.ID,
 		EventID:    eventID,
 		UserID:     order.UserID,
-		Quantity:   1,
-		TotalPrice: order.TotalPrice,
+		Quantity:   &quantity,
+		TotalPrice: &order.TotalPrice,
 	}
 }
 
@@ -29,7 +30,7 @@ func TicketEntityToResponse(ticket *entity.Ticket) *model.TicketResponse {
 		Type:       ticket.Type,
 		SeatNumber: ticket.SeatNumber,
 		Event:      EventEntityToResponse(&ticket.Event),
-		Order:      ticketOrderToResponse(&ticket.Order, ticket.EventID),
+		Order:      ticketOrderToResponse(&ticket.Order, &ticket.EventID),
 	}
 }
 
