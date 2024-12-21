@@ -152,7 +152,7 @@ func (s *TicketServiceImpl) GetTicketByID(ctx context.Context, request *model.Ge
 
 	tx := s.DB.WithContext(ctx)
 
-	t, err := s.TicketRepository.Find(tx.Preload("Event").Preload("Order"), &model.TicketQueryOptions{
+	t, err := s.TicketRepository.Find(tx.Preload("Order"), &model.TicketQueryOptions{
 		ID: &request.ID,
 	})
 	if err != nil {
@@ -279,7 +279,7 @@ func (s *TicketServiceImpl) SearchTickets(ctx context.Context, request *model.Ti
 		opts.Type = &ticketType
 	}
 	if request.SeatNumber != "" {
-		opts.SeatNumbers = []string{request.SeatNumber}
+		opts.SeatNumbers = &[]string{request.SeatNumber}
 	}
 
 	db := s.DB.WithContext(ctx)

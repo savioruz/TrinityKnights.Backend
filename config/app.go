@@ -76,7 +76,7 @@ func Bootstrap(config *BootstrapConfig) error {
 	paymentHandler := handlerPayment.NewPaymentHandler(config.Viper, config.Log, paymentService)
 
 	// Initialize graphql
-	resolver := resolvers.NewResolver(userService, eventService, ticketService, venueService)
+	resolver := resolvers.NewResolver(userService, eventService, ticketService, venueService, paymentService)
 	graphqlHandler := graphql.NewGraphQLHandler(resolver, jwtService)
 
 	// Initialize middleware

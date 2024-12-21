@@ -493,6 +493,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/payment": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Get Payments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "id",
+                            "order_id",
+                            "amount",
+                            "status"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_PaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/payment/callback": {
             "post": {
                 "description": "Callback Payment",
@@ -526,6 +604,163 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment/search": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Search Payments",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Search Payments",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Payment ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Order ID",
+                        "name": "order_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Amount",
+                        "name": "amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "id",
+                            "order_id",
+                            "amount",
+                            "status"
+                        ],
+                        "type": "string",
+                        "description": "Sort field",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_PaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment/{payment_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get Payment By ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Get Payment By ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Payment ID",
+                        "name": "payment_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_CreatePaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
                         }
@@ -1222,7 +1457,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/verify-email": {
+        "/users/verify-email/{token}": {
             "get": {
                 "description": "Verify email",
                 "consumes": [
@@ -1237,13 +1472,11 @@ const docTemplate = `{
                 "summary": "Verify email",
                 "parameters": [
                     {
-                        "description": "User data",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.VerifyRequest"
-                        }
+                        "type": "string",
+                        "description": "Token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1628,6 +1861,29 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_TrinityKnights_Backend_internal_domain_model.CreatePaymentResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "expiry_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "order_id": {
+                    "type": "integer"
+                },
+                "payment_url": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.CreateTicketRequest": {
             "type": "object",
             "required": [
@@ -1748,6 +2004,9 @@ const docTemplate = `{
         "github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse": {
             "type": "object",
             "properties": {
+                "date": {
+                    "type": "string"
+                },
                 "event_id": {
                     "type": "integer"
                 },
@@ -1755,7 +2014,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "payment": {
-                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse"
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.CreatePaymentResponse"
                 },
                 "quantity": {
                     "type": "integer"
@@ -1897,19 +2156,22 @@ const docTemplate = `{
                 "amount": {
                     "type": "number"
                 },
-                "expiry_date": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "order": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.OrderResponse"
                 },
                 "order_id": {
                     "type": "integer"
                 },
-                "payment_url": {
+                "status": {
                     "type": "string"
                 },
-                "status": {
+                "transaction_id": {
                     "type": "string"
                 }
             }
@@ -2016,6 +2278,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_PaymentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PaymentResponse"
+                    }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
         "github_com_TrinityKnights_Backend_internal_domain_model.Response-array_github_com_TrinityKnights_Backend_internal_domain_model_TicketResponse": {
             "type": "object",
             "properties": {
@@ -2041,6 +2320,20 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.VenueResponse"
                     }
+                },
+                "error": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
+                },
+                "paging": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.PageMetadata"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_CreatePaymentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.CreatePaymentResponse"
                 },
                 "error": {
                     "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error"
@@ -2347,17 +2640,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "zip": {
-                    "type": "string"
-                }
-            }
-        },
-        "github_com_TrinityKnights_Backend_internal_domain_model.VerifyRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
                     "type": "string"
                 }
             }
