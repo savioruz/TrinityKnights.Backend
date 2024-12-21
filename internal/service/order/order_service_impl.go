@@ -72,7 +72,7 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 	// Check if seats are available
 	tickets, err := s.TicketRepository.Find(tx.Clauses(clause.Locking{Strength: "UPDATE"}), &model.TicketQueryOptions{
 		EventID:     &event.ID,
-		SeatNumbers: request.SeatNumbers,
+		SeatNumbers: &request.SeatNumbers,
 	})
 	if err != nil {
 		s.Log.Errorf("failed to get tickets: %v", err)

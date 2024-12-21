@@ -44,8 +44,8 @@ func (r *TicketRepositoryImpl) Find(db *gorm.DB, opts *model.TicketQueryOptions)
 	if opts.Price != nil {
 		countQuery = countQuery.Where("price = ?", *opts.Price)
 	}
-	if len(opts.SeatNumbers) > 0 {
-		countQuery = countQuery.Where("UPPER(seat_number) IN (?)", opts.SeatNumbers)
+	if opts.SeatNumbers != nil && len(*opts.SeatNumbers) > 0 {
+		countQuery = countQuery.Where("UPPER(seat_number) IN (?)", *opts.SeatNumbers)
 	}
 
 	if err := countQuery.Count(&totalCount).Error; err != nil {
@@ -70,8 +70,8 @@ func (r *TicketRepositoryImpl) Find(db *gorm.DB, opts *model.TicketQueryOptions)
 	if opts.Price != nil {
 		query = query.Where("price = ?", *opts.Price)
 	}
-	if len(opts.SeatNumbers) > 0 {
-		query = query.Where("UPPER(seat_number) IN (?)", opts.SeatNumbers)
+	if opts.SeatNumbers != nil && len(*opts.SeatNumbers) > 0 {
+		query = query.Where("UPPER(seat_number) IN (?)", *opts.SeatNumbers)
 	}
 
 	// Apply pagination
