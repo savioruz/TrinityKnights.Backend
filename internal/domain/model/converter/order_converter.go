@@ -15,17 +15,17 @@ func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
 	}
 
 	if len(order.Tickets) > 0 {
-		response.Tickets = make([]model.TicketResponse, len(order.Tickets))
+		response.Tickets = &[]model.TicketResponse{}
 		for i := range order.Tickets {
 			ticket := &order.Tickets[i]
-			response.Tickets[i] = model.TicketResponse{
+			*response.Tickets = append(*response.Tickets, model.TicketResponse{
 				ID:         ticket.ID,
 				EventID:    ticket.EventID,
 				OrderID:    helper.UintOrZero(ticket.OrderID),
 				Price:      ticket.Price,
 				Type:       ticket.Type,
 				SeatNumber: ticket.SeatNumber,
-			}
+			})
 			if i == 0 {
 				response.EventID = ticket.EventID
 			}

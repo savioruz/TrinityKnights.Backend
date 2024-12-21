@@ -52,14 +52,14 @@ type TicketSearchRequest struct {
 }
 
 type TicketQueryOptions struct {
-	ID          *string
-	EventID     *uint
-	OrderID     *uint
-	Price       *float64
-	Type        *string
-	SeatNumbers []string `json:"seat_numbers,omitempty"`
-	Page        int
-	Size        int
-	Sort        string
-	Order       string
+	ID          *string  `query:"id,omitempty" validate:"omitempty"`
+	EventID     *uint    `query:"event_id,omitempty" validate:"omitempty"`
+	OrderID     *uint    `query:"order_id,omitempty" validate:"omitempty"`
+	Price       *float64 `query:"price,omitempty" validate:"omitempty"`
+	Type        *string  `query:"type,omitempty" validate:"omitempty"`
+	SeatNumbers []string `query:"seat_numbers,omitempty" validate:"omitempty"`
+	Page        int      `query:"page,omitempty" validate:"omitempty,min=1"`
+	Size        int      `query:"size,omitempty" validate:"omitempty,max=50"`
+	Sort        string   `query:"sort,omitempty" validate:"omitempty,oneof=id event_id eventId order_id orderID price type seat_number seatNumber"`
+	Order       string   `query:"order,omitempty" validate:"omitempty"`
 }

@@ -7,13 +7,13 @@ type OrderTicketRequest struct {
 }
 
 type OrderResponse struct {
-	ID         uint             `json:"id"`
-	EventID    uint             `json:"event_id"`
-	UserID     string           `json:"user_id"`
-	Quantity   int              `json:"quantity"`
-	TotalPrice float64          `json:"total_price"`
-	Tickets    []TicketResponse `json:"tickets"`
-	Payment    *PaymentResponse `json:"payment,omitempty"`
+	ID         uint              `json:"id"`
+	EventID    uint              `json:"event_id"`
+	UserID     string            `json:"user_id"`
+	Quantity   int               `json:"quantity"`
+	TotalPrice float64           `json:"total_price"`
+	Tickets    *[]TicketResponse `json:"tickets,omitempty"`
+	Payment    *PaymentResponse  `json:"payment,omitempty"`
 }
 
 type UpdateOrderRequest struct {

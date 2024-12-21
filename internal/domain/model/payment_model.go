@@ -54,3 +54,16 @@ type PaymentCallbackRequest struct {
 type PaymentCallbackResponse struct {
 	Status string `json:"status"`
 }
+
+type PaymentQueryOptions struct {
+	ID            *uint
+	OrderID       *uint
+	Method        *string
+	TransactionID *string
+	Amount        *float64
+	Status        *PaymentStatus
+	Page          int
+	Size          int
+	Sort          string
+	Order         string
+}
