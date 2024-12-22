@@ -3,7 +3,6 @@ package venue
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/TrinityKnights/Backend/internal/delivery/http/handler"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
@@ -47,10 +46,12 @@ func (h *VenueHandlerImpl) CreateVenue(ctx echo.Context) error {
 	response, err := h.VenueService.CreateVenue(ctx.Request().Context(), request)
 	if err != nil {
 		h.Log.Errorf("failed to create venue: %v", err)
-		if strings.Contains(err.Error(), "invalid request") {
+		switch {
+		case errors.Is(err, domainErrors.ErrBadRequest):
 			return handler.HandleError(ctx, http.StatusBadRequest, err)
+		default:
+			return handler.HandleError(ctx, http.StatusInternalServerError, err)
 		}
-		return handler.HandleError(ctx, http.StatusInternalServerError, err)
 	}
 
 	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
@@ -80,10 +81,12 @@ func (h *VenueHandlerImpl) UpdateVenue(ctx echo.Context) error {
 	if err != nil {
 		h.Log.Errorf("failed to update venue: %v", err)
 		switch {
-		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
-			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, domainErrors.ErrBadRequest):
+			return handler.HandleError(ctx, http.StatusBadRequest, err)
+		case errors.Is(err, domainErrors.ErrNotFound):
+			return handler.HandleError(ctx, http.StatusNotFound, err)
 		default:
-			return handler.HandleError(ctx, 500, err)
+			return handler.HandleError(ctx, http.StatusInternalServerError, err)
 		}
 	}
 
@@ -190,10 +193,12 @@ func (h *VenueHandlerImpl) SearchVenues(ctx echo.Context) error {
 	if err != nil {
 		h.Log.Errorf("failed to search venues: %v", err)
 		switch {
-		case errors.Is(err, errors.New(http.StatusText(http.StatusBadRequest))):
-			return handler.HandleError(ctx, 400, err)
+		case errors.Is(err, domainErrors.ErrBadRequest):
+			return handler.HandleError(ctx, http.StatusBadRequest, err)
+		case errors.Is(err, domainErrors.ErrNotFound):
+			return handler.HandleError(ctx, http.StatusNotFound, err)
 		default:
-			return handler.HandleError(ctx, 500, err)
+			return handler.HandleError(ctx, http.StatusInternalServerError, err)
 		}
 	}
 
