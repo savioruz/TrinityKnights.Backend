@@ -11,4 +11,5 @@ type OrderRepository interface {
 	GetByID(db *gorm.DB, order *entity.Order, id uint) error
 	GetByIDWithDetails(db *gorm.DB, order *entity.Order, id uint) error
 	GetAllWithDetails(db *gorm.DB, orders *[]entity.Order) error
+	GetPaginatedOrders(db *gorm.DB, orders *[]entity.Order, page, size int, sort, order string) (int64, error)
 }

@@ -41,9 +41,12 @@
                     },
                     {
                         "enum": [
+                            "id",
                             "name",
+                            "description",
                             "date",
-                            "time"
+                            "time",
+                            "venue_id"
                         ],
                         "type": "string",
                         "description": "Sort field",
@@ -140,6 +143,12 @@
                 "summary": "Search events",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Event name",
                         "name": "name",
@@ -183,9 +192,12 @@
                     },
                     {
                         "enum": [
+                            "id",
                             "name",
+                            "description",
                             "date",
-                            "time"
+                            "time",
+                            "venue_id"
                         ],
                         "type": "string",
                         "description": "Sort field",
@@ -348,6 +360,7 @@
                     },
                     {
                         "enum": [
+                            "id",
                             "date",
                             "total_price"
                         ],
@@ -942,6 +955,7 @@
                     },
                     {
                         "enum": [
+                            "id",
                             "event_id",
                             "order_id",
                             "price",
@@ -1632,6 +1646,12 @@
                 ],
                 "summary": "Search venues",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Venue ID",
+                        "name": "id",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Venue name",

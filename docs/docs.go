@@ -48,9 +48,12 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "id",
                             "name",
+                            "description",
                             "date",
-                            "time"
+                            "time",
+                            "venue_id"
                         ],
                         "type": "string",
                         "description": "Sort field",
@@ -147,6 +150,12 @@ const docTemplate = `{
                 "summary": "Search events",
                 "parameters": [
                     {
+                        "type": "integer",
+                        "description": "Event ID",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Event name",
                         "name": "name",
@@ -190,9 +199,12 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "id",
                             "name",
+                            "description",
                             "date",
-                            "time"
+                            "time",
+                            "venue_id"
                         ],
                         "type": "string",
                         "description": "Sort field",
@@ -355,6 +367,7 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "id",
                             "date",
                             "total_price"
                         ],
@@ -949,6 +962,7 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "id",
                             "event_id",
                             "order_id",
                             "price",
@@ -1639,6 +1653,12 @@ const docTemplate = `{
                 ],
                 "summary": "Search venues",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Venue ID",
+                        "name": "id",
+                        "in": "query"
+                    },
                     {
                         "type": "string",
                         "description": "Venue name",

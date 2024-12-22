@@ -2,7 +2,6 @@ package event
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
@@ -63,6 +62,9 @@ func (r *EventRepositoryImpl) GetPaginated(db *gorm.DB, events *[]entity.Event, 
 func (r *EventRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts *model.EventQueryOptions) *gorm.DB {
 	query := db.Model(&entity.Event{})
 
+	if opts.ID != nil && *opts.ID != 0 {
+		query = query.Where("id = ?", *opts.ID)
+	}
 	if opts.Name != nil && *opts.Name != "" {
 		query = query.Where("LOWER(name) LIKE LOWER(?)", "%"+*opts.Name+"%")
 	}
@@ -81,11 +83,28 @@ func (r *EventRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts *model.Event
 
 	// Add sorting
 	if opts.Sort != "" {
-		direction := "ASC"
-		if strings.EqualFold(opts.Order, "DESC") {
-			direction = "DESC"
+		validSortFields := map[string]bool{
+			"ID":          true,
+			"name":        true,
+			"description": true,
+			"date":        true,
+			"time":        true,
+			"venue_id":    true,
+			"created_at":  true,
 		}
-		query = query.Order(fmt.Sprintf("%s %s", opts.Sort, direction))
+
+		validOrders := map[string]bool{
+			"asc":  true,
+			"desc": true,
+		}
+
+		direction := strings.ToLower(opts.Order)
+		if validSortFields[opts.Sort] && validOrders[direction] {
+			orderClause := opts.Sort + " " + direction
+			query = query.Order(orderClause)
+		} else {
+			query = query.Order("created_at DESC")
+		}
 	}
 
 	return query
