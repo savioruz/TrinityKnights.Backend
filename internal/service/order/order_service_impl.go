@@ -238,46 +238,15 @@ func (s *OrderServiceImpl) GetOrders(ctx context.Context, request *model.OrdersR
 	}
 
 	var orders []entity.Order
-	var totalItems int64
-
-	query := s.DB.WithContext(ctx).Model(&entity.Order{})
-
-	// Add sorting
-	if request.Sort != "" && request.Order != "" {
-		validSortFields := map[string]bool{
-			"date":        true,
-			"total_price": true,
-			"created_at":  true,
-		}
-
-		validOrders := map[string]bool{
-			"asc":  true,
-			"desc": true,
-		}
-
-		if validSortFields[request.Sort] && validOrders[request.Order] {
-			query = query.Order(clause.OrderByColumn{Column: clause.Column{Name: request.Sort}, Desc: request.Order == "desc"})
-		} else {
-			query = query.Order("created_at DESC")
-		}
-	} else {
-		query = query.Order("created_at DESC")
-	}
-
-	// Get total count
-	if err := query.Count(&totalItems).Error; err != nil {
-		s.Log.Errorf("failed to count orders: %v", err)
-		return nil, domainErrors.ErrInternalServer
-	}
-
-	// Get paginated results
-	offset := (request.Page - 1) * request.Size
-	if err := query.Preload("Tickets").
-		Preload("Tickets.Event").
-		Preload("Payments").
-		Offset(offset).
-		Limit(request.Size).
-		Find(&orders).Error; err != nil {
+	totalItems, err := s.OrderRepository.GetPaginatedOrders(
+		s.DB.WithContext(ctx),
+		&orders,
+		request.Page,
+		request.Size,
+		request.Sort,
+		request.Order,
+	)
+	if err != nil {
 		s.Log.Errorf("failed to get orders: %v", err)
 		return nil, domainErrors.ErrInternalServer
 	}

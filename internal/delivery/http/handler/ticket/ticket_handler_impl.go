@@ -168,7 +168,7 @@ func (h *TicketHandlerImpl) GetAllTickets(ctx echo.Context) error {
 // @Param seat_number query string false "Seat number"
 // @Param page query int false "Page number"
 // @Param size query int false "Page size"
-// @Param sort query string false "Sort field" Enums(event_id,order_id,price,type,seat_number)
+// @Param sort query string false "Sort field" Enums(id, event_id, order_id, price, type, seat_number)
 // @Param order query string false "Sort order"
 // @Success 200 {object} model.Response[[]model.TicketResponse]
 // @Failure 400 {object} model.Error

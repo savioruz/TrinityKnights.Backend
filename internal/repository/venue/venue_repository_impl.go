@@ -1,7 +1,6 @@
 package venue
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
@@ -55,6 +54,9 @@ func (r *VenueRepositoryImpl) GetPaginated(db *gorm.DB, venues *[]entity.Venue, 
 func (r *VenueRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts *model.VenueQueryOptions) *gorm.DB {
 	query := db.Model(&entity.Venue{})
 
+	if opts.ID != nil && *opts.ID != 0 {
+		query = query.Where("id = ?", *opts.ID)
+	}
 	if opts.Name != nil && *opts.Name != "" {
 		query = query.Where("LOWER(name) LIKE LOWER(?)", "%"+*opts.Name+"%")
 	}
@@ -76,24 +78,24 @@ func (r *VenueRepositoryImpl) buildPaginatedQuery(db *gorm.DB, opts *model.Venue
 
 	// Add sorting with validation
 	if opts.Sort != "" && opts.Order != "" {
-		// Validate sort field
 		validSortFields := map[string]bool{
+			"id":         true,
 			"name":       true,
 			"capacity":   true,
 			"city":       true,
 			"state":      true,
+			"zip":        true,
 			"created_at": true,
 		}
 
-		// Validate order
 		validOrders := map[string]bool{
 			"asc":  true,
 			"desc": true,
 		}
 
 		if validSortFields[strings.ToLower(opts.Sort)] && validOrders[strings.ToLower(opts.Order)] {
-			sort := fmt.Sprintf("%s %s", opts.Sort, opts.Order)
-			query = query.Order(sort)
+			orderClause := opts.Sort + " " + strings.ToLower(opts.Order)
+			query = query.Order(orderClause)
 		} else {
 			query = query.Order("created_at DESC")
 		}

@@ -595,7 +595,20 @@ func (r *queryResolver) SearchVenues(ctx context.Context, name *string, address 
 
 // Payment is the resolver for the payment field.
 func (r *queryResolver) Payment(ctx context.Context, id int) (*graphmodel.PaymentResponse, error) {
-	panic("not implemented")
+	data, err := r.PaymentService.GetPaymentByID(ctx, &model.GetPaymentRequest{
+		ID: uint(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &graphmodel.PaymentResponse{
+		ID:            int(data.ID),
+		OrderID:       int(data.OrderID),
+		Amount:        data.Amount,
+		TransactionID: data.TransactionID,
+		Method:        &data.Method,
+		Status:        data.Status,
+	}, nil
 }
 
 // Payments is the resolver for the payments field.
