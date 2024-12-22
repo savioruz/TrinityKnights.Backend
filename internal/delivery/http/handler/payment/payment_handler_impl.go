@@ -96,7 +96,7 @@ func (h *PaymentHandlerImpl) GetPaymentByID(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
-// @Summary Get Payments
+// @Summary Get Payments @admin
 // @Description Get Payments
 // @Tags Payment
 // @Accept json
@@ -134,7 +134,7 @@ func (h *PaymentHandlerImpl) GetPayments(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// @Summary Search Payments
+// @Summary Search Payments @admin
 // @Description Search Payments
 // @Tags Payment
 // @Accept json

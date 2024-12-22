@@ -24,7 +24,7 @@ func NewTicketHandler(log *logrus.Logger, ticketService ticket.TicketService) Ti
 	}
 }
 
-// @Summary Create new tickets
+// @Summary Create new tickets @admin
 // @Description Create new tickets with the provided details
 // @Tags tickets
 // @Accept json
@@ -54,7 +54,7 @@ func (h *TicketHandlerImpl) CreateTicket(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
 }
 
-// @Summary Update an existing ticket
+// @Summary Update an existing ticket @admin
 // @Description Update an existing ticket with the provided details
 // @Tags tickets
 // @Accept json

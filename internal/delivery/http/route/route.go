@@ -193,7 +193,7 @@ func (c Config) PrivateRoute() []route.Route {
 			Method:  echo.GET,
 			Path:    "/payment/:id",
 			Handler: c.PaymentHandler.GetPaymentByID,
-			Roles:   []string{"admin"},
+			Roles:   []string{"buyer", "admin"},
 		},
 		{
 			Method:  echo.GET,
