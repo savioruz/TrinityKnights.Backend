@@ -163,6 +163,7 @@ func (h *VenueHandlerImpl) GetAllVenues(ctx echo.Context) error {
 // @Description Search venues with the provided query parameters
 // @Tags venues
 // @Produce json
+// @Param id query int false "Venue ID"
 // @Param name query string false "Venue name"
 // @Param address query string false "Venue address"
 // @Param capacity query int false "Venue capacity"

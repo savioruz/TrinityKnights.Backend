@@ -92,10 +92,12 @@ type ComplexityRoot struct {
 	}
 
 	PaymentResponse struct {
-		Amount  func(childComplexity int) int
-		ID      func(childComplexity int) int
-		OrderID func(childComplexity int) int
-		Status  func(childComplexity int) int
+		Amount        func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Method        func(childComplexity int) int
+		OrderID       func(childComplexity int) int
+		Status        func(childComplexity int) int
+		TransactionID func(childComplexity int) int
 	}
 
 	PaymentsResponse struct {
@@ -424,6 +426,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaymentResponse.ID(childComplexity), true
 
+	case "PaymentResponse.method":
+		if e.complexity.PaymentResponse.Method == nil {
+			break
+		}
+
+		return e.complexity.PaymentResponse.Method(childComplexity), true
+
 	case "PaymentResponse.orderId":
 		if e.complexity.PaymentResponse.OrderID == nil {
 			break
@@ -437,6 +446,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PaymentResponse.Status(childComplexity), true
+
+	case "PaymentResponse.transactionId":
+		if e.complexity.PaymentResponse.TransactionID == nil {
+			break
+		}
+
+		return e.complexity.PaymentResponse.TransactionID(childComplexity), true
 
 	case "PaymentsResponse.data":
 		if e.complexity.PaymentsResponse.Data == nil {
@@ -3900,6 +3916,91 @@ func (ec *executionContext) fieldContext_PaymentResponse_amount(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _PaymentResponse_transactionId(ctx context.Context, field graphql.CollectedField, obj *graphmodel.PaymentResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentResponse_transactionId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TransactionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentResponse_transactionId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaymentResponse_method(ctx context.Context, field graphql.CollectedField, obj *graphmodel.PaymentResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaymentResponse_method(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Method, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaymentResponse_method(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaymentResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaymentResponse_status(ctx context.Context, field graphql.CollectedField, obj *graphmodel.PaymentResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaymentResponse_status(ctx, field)
 	if err != nil {
@@ -3986,6 +4087,10 @@ func (ec *executionContext) fieldContext_PaymentsResponse_data(_ context.Context
 				return ec.fieldContext_PaymentResponse_orderId(ctx, field)
 			case "amount":
 				return ec.fieldContext_PaymentResponse_amount(ctx, field)
+			case "transactionId":
+				return ec.fieldContext_PaymentResponse_transactionId(ctx, field)
+			case "method":
+				return ec.fieldContext_PaymentResponse_method(ctx, field)
 			case "status":
 				return ec.fieldContext_PaymentResponse_status(ctx, field)
 			}
@@ -5033,6 +5138,10 @@ func (ec *executionContext) fieldContext_Query_payment(ctx context.Context, fiel
 				return ec.fieldContext_PaymentResponse_orderId(ctx, field)
 			case "amount":
 				return ec.fieldContext_PaymentResponse_amount(ctx, field)
+			case "transactionId":
+				return ec.fieldContext_PaymentResponse_transactionId(ctx, field)
+			case "method":
+				return ec.fieldContext_PaymentResponse_method(ctx, field)
 			case "status":
 				return ec.fieldContext_PaymentResponse_status(ctx, field)
 			}
@@ -9195,6 +9304,13 @@ func (ec *executionContext) _PaymentResponse(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "transactionId":
+			out.Values[i] = ec._PaymentResponse_transactionId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "method":
+			out.Values[i] = ec._PaymentResponse_method(ctx, field, obj)
 		case "status":
 			out.Values[i] = ec._PaymentResponse_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

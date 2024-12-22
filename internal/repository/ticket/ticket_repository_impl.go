@@ -1,7 +1,7 @@
 package ticket
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/TrinityKnights/Backend/internal/domain/entity"
 	"github.com/TrinityKnights/Backend/internal/domain/model"
@@ -82,7 +82,27 @@ func (r *TicketRepositoryImpl) Find(db *gorm.DB, opts *model.TicketQueryOptions)
 
 	// Apply sorting
 	if opts.Sort != "" && opts.Order != "" {
-		query = query.Order(fmt.Sprintf("%s %s", opts.Sort, opts.Order))
+		// Validate sort column and order
+		validSortFields := map[string]bool{
+			"id":          true,
+			"event_id":    true,
+			"order_id":    true,
+			"price":       true,
+			"seat_number": true,
+			"created_at":  true,
+		}
+
+		validOrders := map[string]bool{
+			"asc":  true,
+			"desc": true,
+		}
+
+		if validSortFields[opts.Sort] && validOrders[strings.ToLower(opts.Order)] {
+			orderClause := opts.Sort + " " + strings.ToLower(opts.Order)
+			query = query.Order(orderClause)
+		} else {
+			query = query.Order("created_at DESC")
+		}
 	}
 
 	var tickets []*entity.Ticket

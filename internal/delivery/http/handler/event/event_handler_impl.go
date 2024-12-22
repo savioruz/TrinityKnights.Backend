@@ -124,7 +124,7 @@ func (h *EventHandlerImpl) GetEventByID(ctx echo.Context) error {
 // @Produce json
 // @Param page query int false "Page number"
 // @Param size query int false "Page size"
-// @Param sort query string false "Sort field" Enums(name, date, time)
+// @Param sort query string false "Sort field" Enums(id, name, description, date, time, venue_id)
 // @Param order query string false "Sort order"
 // @Success 200 {object} model.Response[[]model.EventResponse]
 // @Failure 400 {object} model.Error
@@ -156,6 +156,7 @@ func (h *EventHandlerImpl) GetAllEvents(ctx echo.Context) error {
 // @Description Search events with the provided query parameters
 // @Tags events
 // @Produce json
+// @Param id query int false "Event ID"
 // @Param name query string false "Event name"
 // @Param description query string false "Event description"
 // @Param date query string false "Event date"
@@ -163,7 +164,7 @@ func (h *EventHandlerImpl) GetAllEvents(ctx echo.Context) error {
 // @Param venue_id query int false "Venue ID"
 // @Param page query int false "Page number"
 // @Param size query int false "Page size"
-// @Param sort query string false "Sort field" Enums(name, date, time)
+// @Param sort query string false "Sort field" Enums(id, name, description, date, time, venue_id)
 // @Param order query string false "Sort order"
 // @Success 200 {object} model.Response[[]model.EventResponse]
 // @Failure 400 {object} model.Error

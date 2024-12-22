@@ -96,7 +96,7 @@ func (h *OrderHandlerImpl) GetOrderByID(ctx echo.Context) error {
 // @Produce json
 // @Param page query int false "Page number"
 // @Param size query int false "Page size"
-// @Param sort query string false "Sort field" Enums(date, total_price)
+// @Param sort query string false "Sort field" Enums(id, date, total_price)
 // @Param order query string false "Sort order"
 // @Success 200 {object} model.Response[[]model.OrderResponse]
 // @Failure 400 {object} model.Error

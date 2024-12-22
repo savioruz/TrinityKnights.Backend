@@ -580,9 +580,12 @@ paths:
         type: integer
       - description: Sort field
         enum:
+        - id
         - name
+        - description
         - date
         - time
+        - venue_id
         in: query
         name: sort
         type: string
@@ -706,6 +709,10 @@ paths:
     get:
       description: Search events with the provided query parameters
       parameters:
+      - description: Event ID
+        in: query
+        name: id
+        type: integer
       - description: Event name
         in: query
         name: name
@@ -736,9 +743,12 @@ paths:
         type: integer
       - description: Sort field
         enum:
+        - id
         - name
+        - description
         - date
         - time
+        - venue_id
         in: query
         name: sort
         type: string
@@ -778,6 +788,7 @@ paths:
         type: integer
       - description: Sort field
         enum:
+        - id
         - date
         - total_price
         in: query
@@ -1238,6 +1249,7 @@ paths:
         type: integer
       - description: Sort field
         enum:
+        - id
         - event_id
         - order_id
         - price
@@ -1677,6 +1689,10 @@ paths:
     get:
       description: Search venues with the provided query parameters
       parameters:
+      - description: Venue ID
+        in: query
+        name: id
+        type: integer
       - description: Venue name
         in: query
         name: name

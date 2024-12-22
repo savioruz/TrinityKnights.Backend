@@ -37,10 +37,12 @@ type PageMetadata struct {
 }
 
 type PaymentResponse struct {
-	ID      int     `json:"id"`
-	OrderID int     `json:"orderId"`
-	Amount  float64 `json:"amount"`
-	Status  string  `json:"status"`
+	ID            int     `json:"id"`
+	OrderID       int     `json:"orderId"`
+	Amount        float64 `json:"amount"`
+	TransactionID string  `json:"transactionId"`
+	Method        *string `json:"method,omitempty"`
+	Status        string  `json:"status"`
 }
 
 type PaymentsResponse struct {
