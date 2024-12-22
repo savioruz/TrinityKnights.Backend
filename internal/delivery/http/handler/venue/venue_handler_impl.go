@@ -26,7 +26,7 @@ func NewVenueHandler(log *logrus.Logger, venueService venue.VenueService) VenueH
 }
 
 // CreateVenue function is a handler to create a new venue
-// @Summary Create a new venue
+// @Summary Create a new venue @admin
 // @Description Create a new venue with the provided details
 // @Tags venues
 // @Accept json
@@ -57,7 +57,7 @@ func (h *VenueHandlerImpl) CreateVenue(ctx echo.Context) error {
 }
 
 // UpdateVenue function is a handler to update an existing venue
-// @Summary Update an existing venue
+// @Summary Update an existing venue @admin
 // @Description Update an existing venue with the provided details
 // @Tags venues
 // @Accept json
@@ -91,7 +91,7 @@ func (h *VenueHandlerImpl) UpdateVenue(ctx echo.Context) error {
 }
 
 // GetVenueByID function is a handler to get a venue by its ID
-// @Summary Get a venue by ID
+// @Summary Get a venue by ID @admin
 // @Description Get details of a specific venue by its ID
 // @Tags venues
 // @Produce json
@@ -123,7 +123,7 @@ func (h *VenueHandlerImpl) GetVenueByID(ctx echo.Context) error {
 }
 
 // GetAllVenues function is a handler to get all venues
-// @Summary Get all venues
+// @Summary Get all venues @admin
 // @Description Get a paginated list of all venues
 // @Tags venues
 // @Produce json
@@ -159,7 +159,7 @@ func (h *VenueHandlerImpl) GetAllVenues(ctx echo.Context) error {
 }
 
 // SearchVenues function is a handler to search venues
-// @Summary Search venues
+// @Summary Search venues @admin
 // @Description Search venues with the provided query parameters
 // @Tags venues
 // @Produce json

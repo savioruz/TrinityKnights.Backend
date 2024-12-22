@@ -639,7 +639,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Create a new event
+      summary: Create a new event @admin
       tags:
       - events
   /events/{id}:
@@ -702,7 +702,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Update an existing event
+      summary: Update an existing event @admin
       tags:
       - events
   /events/search:
@@ -930,7 +930,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Get Payments
+      summary: Get Payments @admin
       tags:
       - Payment
   /payment/{payment_id}:
@@ -1062,7 +1062,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Search Payments
+      summary: Search Payments @admin
       tags:
       - Payment
   /tickets:
@@ -1137,7 +1137,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Create new tickets
+      summary: Create new tickets @admin
       tags:
       - tickets
   /tickets/{id}:
@@ -1208,7 +1208,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Update an existing ticket
+      summary: Update an existing ticket @admin
       tags:
       - tickets
   /tickets/search:
@@ -1586,7 +1586,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Get all venues
+      summary: Get all venues @admin
       tags:
       - venues
     post:
@@ -1617,7 +1617,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Create a new venue
+      summary: Create a new venue @admin
       tags:
       - venues
   /venues/{id}:
@@ -1646,7 +1646,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Get a venue by ID
+      summary: Get a venue by ID @admin
       tags:
       - venues
     put:
@@ -1682,7 +1682,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Update an existing venue
+      summary: Update an existing venue @admin
       tags:
       - venues
   /venues/search:
@@ -1753,7 +1753,7 @@ paths:
             $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Error'
       security:
       - ApiKeyAuth: []
-      summary: Search venues
+      summary: Search venues @admin
       tags:
       - venues
 securityDefinitions:

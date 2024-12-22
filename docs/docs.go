@@ -104,7 +104,7 @@ const docTemplate = `{
                 "tags": [
                     "events"
                 ],
-                "summary": "Create a new event",
+                "summary": "Create a new event @admin",
                 "parameters": [
                     {
                         "description": "Event details",
@@ -296,7 +296,7 @@ const docTemplate = `{
                 "tags": [
                     "events"
                 ],
-                "summary": "Update an existing event",
+                "summary": "Update an existing event @admin",
                 "parameters": [
                     {
                         "type": "integer",
@@ -523,7 +523,7 @@ const docTemplate = `{
                 "tags": [
                     "Payment"
                 ],
-                "summary": "Get Payments",
+                "summary": "Get Payments @admin",
                 "parameters": [
                     {
                         "type": "integer",
@@ -647,7 +647,7 @@ const docTemplate = `{
                 "tags": [
                     "Payment"
                 ],
-                "summary": "Search Payments",
+                "summary": "Search Payments @admin",
                 "parameters": [
                     {
                         "type": "integer",
@@ -867,7 +867,7 @@ const docTemplate = `{
                 "tags": [
                     "tickets"
                 ],
-                "summary": "Create new tickets",
+                "summary": "Create new tickets @admin",
                 "parameters": [
                     {
                         "description": "Ticket details",
@@ -1071,7 +1071,7 @@ const docTemplate = `{
                 "tags": [
                     "tickets"
                 ],
-                "summary": "Update an existing ticket",
+                "summary": "Update an existing ticket @admin",
                 "parameters": [
                     {
                         "type": "string",
@@ -1535,7 +1535,7 @@ const docTemplate = `{
                 "tags": [
                     "venues"
                 ],
-                "summary": "Get all venues",
+                "summary": "Get all venues @admin",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1603,7 +1603,7 @@ const docTemplate = `{
                 "tags": [
                     "venues"
                 ],
-                "summary": "Create a new venue",
+                "summary": "Create a new venue @admin",
                 "parameters": [
                     {
                         "description": "Venue details",
@@ -1651,7 +1651,7 @@ const docTemplate = `{
                 "tags": [
                     "venues"
                 ],
-                "summary": "Search venues",
+                "summary": "Search venues @admin",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1760,7 +1760,7 @@ const docTemplate = `{
                 "tags": [
                     "venues"
                 ],
-                "summary": "Get a venue by ID",
+                "summary": "Get a venue by ID @admin",
                 "parameters": [
                     {
                         "type": "integer",
@@ -1807,7 +1807,7 @@ const docTemplate = `{
                 "tags": [
                     "venues"
                 ],
-                "summary": "Update an existing venue",
+                "summary": "Update an existing venue @admin",
                 "parameters": [
                     {
                         "type": "integer",

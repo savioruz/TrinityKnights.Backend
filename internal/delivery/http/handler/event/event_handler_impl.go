@@ -25,7 +25,7 @@ func NewEventHandler(log *logrus.Logger, eventService event.EventService) EventH
 	}
 }
 
-// @Summary Create a new event
+// @Summary Create a new event @admin
 // @Description Create a new event with the provided details
 // @Tags events
 // @Accept json
@@ -55,7 +55,7 @@ func (h *EventHandlerImpl) CreateEvent(ctx echo.Context) error {
 	return ctx.JSON(http.StatusCreated, model.NewResponse(response, nil))
 }
 
-// @Summary Update an existing event
+// @Summary Update an existing event @admin
 // @Description Update an existing event with the provided details
 // @Tags events
 // @Accept json
