@@ -1187,7 +1187,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest"
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateUserRequest"
                         }
                     }
                 ],
@@ -1495,9 +1495,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Email verified",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VerifyResponse"
                         }
                     },
                     "400": {
@@ -2531,24 +2531,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string",
-                    "maxLength": 100
-                },
-                "name": {
-                    "type": "string",
-                    "maxLength": 100
-                },
-                "password": {
-                    "type": "string",
-                    "maxLength": 255,
-                    "minLength": 8
-                }
-            }
-        },
         "github_com_TrinityKnights_Backend_internal_domain_model.UpdateTicketRequest": {
             "type": "object",
             "required": [
@@ -2572,6 +2554,24 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_TrinityKnights_Backend_internal_domain_model.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 100
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 8
                 }
             }
         },

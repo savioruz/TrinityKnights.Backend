@@ -8755,8 +8755,8 @@ func (ec *executionContext) unmarshalInputUpdateTicketInput(ctx context.Context,
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj interface{}) (model.UpdateRequest, error) {
-	var it model.UpdateRequest
+func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, obj interface{}) (model.UpdateUserRequest, error) {
+	var it model.UpdateUserRequest
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v

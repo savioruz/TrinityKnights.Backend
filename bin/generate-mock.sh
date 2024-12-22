@@ -1,17 +1,16 @@
 #!/bin/bash
 
+
+
 for file in $(find . -name '*.go' | grep -v /vendor/); do
     if grep -q '^type.*interface {$' ${file}; then
-        dest=$(basename ${file} .go)_mock.go
-        echo "Creating mock for ${file} -> ${dest}"
-        cat <<EOF > test/mock/${dest}
-package mock
-
-import (
-    "github.com/stretchr/testify/mock"
-)
-
-// Auto-generated mock for ${file}
-EOF
+        relative_path=${file#./internal/}
+        dir_path=$(dirname ${relative_path})
+        if [[ ${dir_path} == "." ]]; then
+            dest=$(basename ${file} .go)_mock.go
+        else
+            dest="${dir_path}/$(basename ${file} .go)_mock.go"
+        fi
+        mockgen -source=${file} -destination=test/mock/${dest}
     fi
 done
