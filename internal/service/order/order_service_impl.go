@@ -69,8 +69,8 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		return nil, domainErrors.ErrInternalServer
 	}
 
-	// Check if seats are available
-	tickets, err := s.TicketRepository.Find(tx.Clauses(clause.Locking{Strength: "UPDATE"}), &model.TicketQueryOptions{
+	// First check if tickets exist and are available (without locking)
+	tickets, err := s.TicketRepository.Find(tx, &model.TicketQueryOptions{
 		EventID:     &event.ID,
 		SeatNumbers: &request.SeatNumbers,
 	})
@@ -89,29 +89,28 @@ func (s *OrderServiceImpl) CreateOrder(ctx context.Context, request *model.Order
 		}
 	}
 
-	// Verify all requested tickets exist and match seat numbers
+	// Now lock and update the specific tickets one by one
 	targetTickets := make([]*entity.Ticket, 0, len(request.TicketIDs))
 	totalPrice := 0.0
 
 	s.Log.Infof("Verifying tickets - IDs: %v, Seats: %v", request.TicketIDs, request.SeatNumbers)
 
-	for i, ticketID := range request.TicketIDs {
-		var found bool
-		for _, ticket := range tickets {
-			s.Log.Infof("Comparing - Request ID: %s, DB ID: %s, Request Seat: %s, DB Seat: %s",
-				ticketID, ticket.ID, request.SeatNumbers[i], ticket.SeatNumber)
-
-			if ticket.ID == ticketID && ticket.SeatNumber == request.SeatNumbers[i] {
-				targetTickets = append(targetTickets, ticket)
-				totalPrice += ticket.Price
-				found = true
-				break
+	for _, ticketID := range request.TicketIDs {
+		var ticket entity.Ticket
+		// Lock individual ticket for update
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("id = ? AND order_id IS NULL", ticketID).
+			First(&ticket).Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, domainErrors.ErrSeatAlreadyTaken
 			}
+			s.Log.Errorf("failed to lock ticket: %v", err)
+			return nil, domainErrors.ErrInternalServer
 		}
-		if !found {
-			s.Log.Errorf("Ticket not found - ID: %s, Seat: %s", ticketID, request.SeatNumbers[i])
-			return nil, domainErrors.ErrNotFound
-		}
+
+		// Add ticket to our target tickets slice
+		targetTickets = append(targetTickets, &ticket)
+		totalPrice += ticket.Price
 	}
 
 	// Convert pointer slice to value slice
