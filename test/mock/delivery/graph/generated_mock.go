@@ -58,20 +58,6 @@ func (mr *MockResolverRootMockRecorder) EventResponse() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventResponse", reflect.TypeOf((*MockResolverRoot)(nil).EventResponse))
 }
 
-// Mutation mocks base method.
-func (m *MockResolverRoot) Mutation() graph.MutationResolver {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Mutation")
-	ret0, _ := ret[0].(graph.MutationResolver)
-	return ret0
-}
-
-// Mutation indicates an expected call of Mutation.
-func (mr *MockResolverRootMockRecorder) Mutation() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mutation", reflect.TypeOf((*MockResolverRoot)(nil).Mutation))
-}
-
 // Query mocks base method.
 func (m *MockResolverRoot) Query() graph.QueryResolver {
 	m.ctrl.T.Helper()
@@ -198,120 +184,6 @@ func (mr *MockEventResponseResolverMockRecorder) VenueID(ctx, obj any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VenueID", reflect.TypeOf((*MockEventResponseResolver)(nil).VenueID), ctx, obj)
 }
 
-// MockMutationResolver is a mock of MutationResolver interface.
-type MockMutationResolver struct {
-	ctrl     *gomock.Controller
-	recorder *MockMutationResolverMockRecorder
-	isgomock struct{}
-}
-
-// MockMutationResolverMockRecorder is the mock recorder for MockMutationResolver.
-type MockMutationResolverMockRecorder struct {
-	mock *MockMutationResolver
-}
-
-// NewMockMutationResolver creates a new mock instance.
-func NewMockMutationResolver(ctrl *gomock.Controller) *MockMutationResolver {
-	mock := &MockMutationResolver{ctrl: ctrl}
-	mock.recorder = &MockMutationResolverMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockMutationResolver) EXPECT() *MockMutationResolverMockRecorder {
-	return m.recorder
-}
-
-// CreateEvent mocks base method.
-func (m *MockMutationResolver) CreateEvent(ctx context.Context, name, description, date, time string, venueID int) (*model.EventResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateEvent", ctx, name, description, date, time, venueID)
-	ret0, _ := ret[0].(*model.EventResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateEvent indicates an expected call of CreateEvent.
-func (mr *MockMutationResolverMockRecorder) CreateEvent(ctx, name, description, date, time, venueID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEvent", reflect.TypeOf((*MockMutationResolver)(nil).CreateEvent), ctx, name, description, date, time, venueID)
-}
-
-// CreateTicket mocks base method.
-func (m *MockMutationResolver) CreateTicket(ctx context.Context, input graphmodel.CreateTicketInput) ([]*graphmodel.TicketResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateTicket", ctx, input)
-	ret0, _ := ret[0].([]*graphmodel.TicketResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateTicket indicates an expected call of CreateTicket.
-func (mr *MockMutationResolverMockRecorder) CreateTicket(ctx, input any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTicket", reflect.TypeOf((*MockMutationResolver)(nil).CreateTicket), ctx, input)
-}
-
-// CreateVenue mocks base method.
-func (m *MockMutationResolver) CreateVenue(ctx context.Context, name, address string, capacity int, city, state, zip string) (*model.VenueResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateVenue", ctx, name, address, capacity, city, state, zip)
-	ret0, _ := ret[0].(*model.VenueResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateVenue indicates an expected call of CreateVenue.
-func (mr *MockMutationResolverMockRecorder) CreateVenue(ctx, name, address, capacity, city, state, zip any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVenue", reflect.TypeOf((*MockMutationResolver)(nil).CreateVenue), ctx, name, address, capacity, city, state, zip)
-}
-
-// UpdateEvent mocks base method.
-func (m *MockMutationResolver) UpdateEvent(ctx context.Context, id int, input graphmodel.UpdateEventInput) (*model.EventResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateEvent", ctx, id, input)
-	ret0, _ := ret[0].(*model.EventResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateEvent indicates an expected call of UpdateEvent.
-func (mr *MockMutationResolverMockRecorder) UpdateEvent(ctx, id, input any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEvent", reflect.TypeOf((*MockMutationResolver)(nil).UpdateEvent), ctx, id, input)
-}
-
-// UpdateTicket mocks base method.
-func (m *MockMutationResolver) UpdateTicket(ctx context.Context, id string, input graphmodel.UpdateTicketInput) (*graphmodel.TicketResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateTicket", ctx, id, input)
-	ret0, _ := ret[0].(*graphmodel.TicketResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateTicket indicates an expected call of UpdateTicket.
-func (mr *MockMutationResolverMockRecorder) UpdateTicket(ctx, id, input any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTicket", reflect.TypeOf((*MockMutationResolver)(nil).UpdateTicket), ctx, id, input)
-}
-
-// UpdateVenue mocks base method.
-func (m *MockMutationResolver) UpdateVenue(ctx context.Context, id int, input graphmodel.UpdateVenueInput) (*model.VenueResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateVenue", ctx, id, input)
-	ret0, _ := ret[0].(*model.VenueResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateVenue indicates an expected call of UpdateVenue.
-func (mr *MockMutationResolverMockRecorder) UpdateVenue(ctx, id, input any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateVenue", reflect.TypeOf((*MockMutationResolver)(nil).UpdateVenue), ctx, id, input)
-}
-
 // MockQueryResolver is a mock of QueryResolver interface.
 type MockQueryResolver struct {
 	ctrl     *gomock.Controller
@@ -381,21 +253,6 @@ func (mr *MockQueryResolverMockRecorder) Payment(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Payment", reflect.TypeOf((*MockQueryResolver)(nil).Payment), ctx, id)
 }
 
-// Payments mocks base method.
-func (m *MockQueryResolver) Payments(ctx context.Context, page, size *int, sort, order *string) (*graphmodel.PaymentsResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Payments", ctx, page, size, sort, order)
-	ret0, _ := ret[0].(*graphmodel.PaymentsResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Payments indicates an expected call of Payments.
-func (mr *MockQueryResolverMockRecorder) Payments(ctx, page, size, sort, order any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Payments", reflect.TypeOf((*MockQueryResolver)(nil).Payments), ctx, page, size, sort, order)
-}
-
 // Profile mocks base method.
 func (m *MockQueryResolver) Profile(ctx context.Context) (*model.UserResponse, error) {
 	m.ctrl.T.Helper()
@@ -426,21 +283,6 @@ func (mr *MockQueryResolverMockRecorder) SearchEvents(ctx, name, description, da
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchEvents", reflect.TypeOf((*MockQueryResolver)(nil).SearchEvents), ctx, name, description, date, time, venueID, page, size, sort, order)
 }
 
-// SearchPayments mocks base method.
-func (m *MockQueryResolver) SearchPayments(ctx context.Context, id, orderID *int, amount *float64, status *string, page, size *int, sort, order *string) (*graphmodel.PaymentsResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchPayments", ctx, id, orderID, amount, status, page, size, sort, order)
-	ret0, _ := ret[0].(*graphmodel.PaymentsResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SearchPayments indicates an expected call of SearchPayments.
-func (mr *MockQueryResolverMockRecorder) SearchPayments(ctx, id, orderID, amount, status, page, size, sort, order any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPayments", reflect.TypeOf((*MockQueryResolver)(nil).SearchPayments), ctx, id, orderID, amount, status, page, size, sort, order)
-}
-
 // SearchTickets mocks base method.
 func (m *MockQueryResolver) SearchTickets(ctx context.Context, id *string, eventID, orderID *int, price *float64, typeArg, seatNumber *string, page, size *int, sort, order *string) (*graphmodel.TicketsResponse, error) {
 	m.ctrl.T.Helper()
@@ -454,21 +296,6 @@ func (m *MockQueryResolver) SearchTickets(ctx context.Context, id *string, event
 func (mr *MockQueryResolverMockRecorder) SearchTickets(ctx, id, eventID, orderID, price, typeArg, seatNumber, page, size, sort, order any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTickets", reflect.TypeOf((*MockQueryResolver)(nil).SearchTickets), ctx, id, eventID, orderID, price, typeArg, seatNumber, page, size, sort, order)
-}
-
-// SearchVenues mocks base method.
-func (m *MockQueryResolver) SearchVenues(ctx context.Context, name, address *string, capacity *int, city, state, zip *string, page, size *int, sort, order *string) (*graphmodel.VenuesResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SearchVenues", ctx, name, address, capacity, city, state, zip, page, size, sort, order)
-	ret0, _ := ret[0].(*graphmodel.VenuesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SearchVenues indicates an expected call of SearchVenues.
-func (mr *MockQueryResolverMockRecorder) SearchVenues(ctx, name, address, capacity, city, state, zip, page, size, sort, order any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchVenues", reflect.TypeOf((*MockQueryResolver)(nil).SearchVenues), ctx, name, address, capacity, city, state, zip, page, size, sort, order)
 }
 
 // Ticket mocks base method.
@@ -499,36 +326,6 @@ func (m *MockQueryResolver) Tickets(ctx context.Context, page, size *int, sort, 
 func (mr *MockQueryResolverMockRecorder) Tickets(ctx, page, size, sort, order any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tickets", reflect.TypeOf((*MockQueryResolver)(nil).Tickets), ctx, page, size, sort, order)
-}
-
-// Venue mocks base method.
-func (m *MockQueryResolver) Venue(ctx context.Context, id int) (*model.VenueResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Venue", ctx, id)
-	ret0, _ := ret[0].(*model.VenueResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Venue indicates an expected call of Venue.
-func (mr *MockQueryResolverMockRecorder) Venue(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Venue", reflect.TypeOf((*MockQueryResolver)(nil).Venue), ctx, id)
-}
-
-// Venues mocks base method.
-func (m *MockQueryResolver) Venues(ctx context.Context, page, size *int, sort, order *string) (*graphmodel.VenuesResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Venues", ctx, page, size, sort, order)
-	ret0, _ := ret[0].(*graphmodel.VenuesResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Venues indicates an expected call of Venues.
-func (mr *MockQueryResolverMockRecorder) Venues(ctx, page, size, sort, order any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Venues", reflect.TypeOf((*MockQueryResolver)(nil).Venues), ctx, page, size, sort, order)
 }
 
 // MockUserResponseResolver is a mock of UserResponseResolver interface.
