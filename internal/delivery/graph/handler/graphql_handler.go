@@ -39,6 +39,12 @@ func (h *GraphQLHandler) createGraphQLServer() *handler.Server {
 						if claims == nil {
 							return nil, fmt.Errorf("access denied")
 						}
+
+						role := ctx.Value(contextKey).(*jwt.JWTClaims).Role
+						if role != "admin" {
+							return nil, fmt.Errorf("access denied")
+						}
+
 						return next(ctx)
 					},
 					Public: func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
