@@ -26,9 +26,6 @@ type EventsResponse struct {
 	Error  *Error                 `json:"error,omitempty"`
 }
 
-type Mutation struct {
-}
-
 type PageMetadata struct {
 	Page       int `json:"page"`
 	Size       int `json:"size"`
@@ -90,6 +87,11 @@ type UpdateTicketInput struct {
 	Price      *float64 `json:"price,omitempty"`
 	Type       *string  `json:"type,omitempty"`
 	SeatNumber *string  `json:"seatNumber,omitempty"`
+}
+
+type UpdateUserRequest struct {
+	ID   string `json:"id"`
+	Data string `json:"data"`
 }
 
 type UpdateVenueInput struct {
