@@ -68,17 +68,14 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	}
 
 	first := &entity.User{}
-	if err := s.UserRepository.GetFirst(tx, first); err != nil {
-		s.Log.Errorf("failed to get first user: %v", err)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domainErrors.ErrNotFound
-		}
-		return nil, domainErrors.ErrInternalServer
-	}
+	err = s.UserRepository.GetFirst(tx, first)
 
 	var role string
-	if first.ID == "" {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		role = "admin"
+	} else if err != nil {
+		s.Log.Errorf("failed to get first user: %v", err)
+		return nil, domainErrors.ErrInternalServer
 	} else {
 		role = "buyer"
 	}
