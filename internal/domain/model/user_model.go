@@ -22,7 +22,7 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=8,lte=255"`
 }
 
-type UpdateRequest struct {
+type UpdateUserRequest struct {
 	Email    string `json:"email" validate:"omitempty,email,lte=100"`
 	Password string `json:"password" validate:"omitempty,min=8,lte=255"`
 	Name     string `json:"name" validate:"omitempty,lte=100"`

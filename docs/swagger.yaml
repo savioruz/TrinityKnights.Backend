@@ -459,19 +459,6 @@ definitions:
     required:
     - id
     type: object
-  github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest:
-    properties:
-      email:
-        maxLength: 100
-        type: string
-      name:
-        maxLength: 100
-        type: string
-      password:
-        maxLength: 255
-        minLength: 8
-        type: string
-    type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateTicketRequest:
     properties:
       event_id:
@@ -488,6 +475,19 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  github_com_TrinityKnights_Backend_internal_domain_model.UpdateUserRequest:
+    properties:
+      email:
+        maxLength: 100
+        type: string
+      name:
+        maxLength: 100
+        type: string
+      password:
+        maxLength: 255
+        minLength: 8
+        type: string
     type: object
   github_com_TrinityKnights_Backend_internal_domain_model.UpdateVenueRequest:
     properties:
@@ -1352,7 +1352,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateRequest'
+          $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.UpdateUserRequest'
       produces:
       - application/json
       responses:
@@ -1528,9 +1528,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: Email verified
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/github_com_TrinityKnights_Backend_internal_domain_model.Response-github_com_TrinityKnights_Backend_internal_domain_model_VerifyResponse'
         "400":
           description: Bad Request
           schema:

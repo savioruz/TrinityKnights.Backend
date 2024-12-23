@@ -29,14 +29,14 @@ func OrderEntityToResponse(order *entity.Order) *model.OrderResponse {
 	// Only add tickets if they exist
 	if len(order.Tickets) > 0 {
 		tickets := make([]model.TicketResponse, len(order.Tickets))
-		for i, ticket := range order.Tickets {
+		for i := range order.Tickets {
 			tickets[i] = model.TicketResponse{
-				ID:         ticket.ID,
-				EventID:    ticket.EventID,
-				OrderID:    helper.UintOrZero(ticket.OrderID),
-				Price:      ticket.Price,
-				Type:       ticket.Type,
-				SeatNumber: ticket.SeatNumber,
+				ID:         order.Tickets[i].ID,
+				EventID:    order.Tickets[i].EventID,
+				OrderID:    helper.UintOrZero(order.Tickets[i].OrderID),
+				Price:      order.Tickets[i].Price,
+				Type:       order.Tickets[i].Type,
+				SeatNumber: order.Tickets[i].SeatNumber,
 			}
 		}
 		response.Tickets = &tickets

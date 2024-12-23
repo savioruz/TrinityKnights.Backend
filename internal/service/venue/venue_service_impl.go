@@ -222,6 +222,9 @@ func (s *VenueServiceImpl) SearchVenues(ctx context.Context, request *model.Venu
 	totalItems, err := s.VenueRepository.GetPaginated(s.DB.WithContext(ctx), &venues, &opts)
 	if err != nil {
 		s.Log.Errorf("failed to search venues: %v", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domainErrors.ErrNotFound
+		}
 		return nil, domainErrors.ErrInternalServer
 	}
 
