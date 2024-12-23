@@ -68,18 +68,16 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	}
 
 	first := &entity.User{}
-	if err := s.UserRepository.GetFirst(tx, first); err != nil {
-		s.Log.Errorf("failed to get first user: %v", err)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, domainErrors.ErrNotFound
-		}
-		return nil, domainErrors.ErrInternalServer
-	}
+	err = s.UserRepository.GetFirst(tx, first)
 
 	var role string
-	if first.ID == "" {
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		role = "admin"
-	} else {
+	case err != nil:
+		s.Log.Errorf("failed to get first user: %v", err)
+		return nil, domainErrors.ErrInternalServer
+	default:
 		role = "buyer"
 	}
 
@@ -217,7 +215,7 @@ func (s *UserServiceImpl) Profile(ctx context.Context) (*model.UserResponse, err
 	return converter.UserToResponse(data), nil
 }
 
-func (s *UserServiceImpl) Update(ctx context.Context, request *model.UpdateRequest) (*model.UserResponse, error) {
+func (s *UserServiceImpl) Update(ctx context.Context, request *model.UpdateUserRequest) (*model.UserResponse, error) {
 	tx := s.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -383,7 +381,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.Rese
 	}
 
 	if request.Token != u.ResetPasswordToken {
-		return nil, domainErrors.ErrBadRequest
+		return nil, domainErrors.ErrUnauthorized
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
@@ -393,6 +391,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, request *model.Rese
 	}
 
 	u.Password = string(hashedPassword)
+	u.ResetPasswordToken = ""
 	err = s.UserRepository.Update(tx, u)
 	if err != nil {
 		s.Log.Errorf("failed to update user: %v", err)

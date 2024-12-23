@@ -128,7 +128,7 @@ func (h *UserHandlerImpl) Profile(ctx echo.Context) error {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body model.UpdateRequest true "User data"
+// @Param user body model.UpdateUserRequest true "User data"
 // @Success 200 {object} model.Response[model.UserResponse]
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
@@ -136,7 +136,7 @@ func (h *UserHandlerImpl) Profile(ctx echo.Context) error {
 // @security ApiKeyAuth
 // @Router /users [put]
 func (h *UserHandlerImpl) Update(ctx echo.Context) error {
-	request := new(model.UpdateRequest)
+	request := new(model.UpdateUserRequest)
 	if err := ctx.Bind(request); err != nil {
 		h.Log.Errorf("failed to bind request: %v", err)
 		return handler.HandleError(ctx, http.StatusBadRequest, domainErrors.ErrBadRequest)
@@ -193,7 +193,7 @@ func (h *UserHandlerImpl) RefreshToken(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }
 
-// RequestResetPassword function is a handler to request reset password via email
+// RequestReset function is a handler to request reset password via email
 // @Summary Request reset password via email
 // @Description Request reset password via email
 // @Tags user
@@ -253,6 +253,8 @@ func (h *UserHandlerImpl) ResetPassword(ctx echo.Context) error {
 		switch {
 		case errors.Is(err, domainErrors.ErrBadRequest):
 			return handler.HandleError(ctx, http.StatusBadRequest, err)
+		case errors.Is(err, domainErrors.ErrUnauthorized):
+			return handler.HandleError(ctx, http.StatusUnauthorized, err)
 		case errors.Is(err, domainErrors.ErrNotFound):
 			return handler.HandleError(ctx, http.StatusNotFound, err)
 		default:
@@ -270,30 +272,33 @@ func (h *UserHandlerImpl) ResetPassword(ctx echo.Context) error {
 // @Accept json
 // @Produce json
 // @Param token path string true "Token"
-// @Success 200 {string} string "Email verified"
+// @Success 200 {object} model.Response[model.VerifyResponse]
 // @Failure 400 {object} model.Error
 // @Failure 404 {object} model.Error
 // @Failure 500 {object} model.Error
 // @Router /users/verify-email/{token} [get]
 func (h *UserHandlerImpl) VerifyEmail(ctx echo.Context) error {
-	request := new(model.VerifyRequest)
-	if err := ctx.Bind(request); err != nil {
-		h.Log.Errorf("failed to bind request: %v", err)
+	token := ctx.Param("token")
+	if token == "" {
 		return handler.HandleError(ctx, http.StatusBadRequest, domainErrors.ErrBadRequest)
 	}
 
-	_, err := h.User.VerifyEmail(ctx.Request().Context(), request)
+	request := &model.VerifyRequest{
+		Token: token,
+	}
+
+	response, err := h.User.VerifyEmail(ctx.Request().Context(), request)
 	if err != nil {
 		h.Log.Errorf("failed to verify email: %v", err)
 		switch {
 		case errors.Is(err, domainErrors.ErrBadRequest):
 			return handler.HandleError(ctx, http.StatusBadRequest, err)
-		case errors.Is(err, domainErrors.ErrNotFound):
-			return handler.HandleError(ctx, http.StatusNotFound, err)
+		case errors.Is(err, domainErrors.ErrUnauthorized):
+			return handler.HandleError(ctx, http.StatusUnauthorized, err)
 		default:
 			return handler.HandleError(ctx, http.StatusInternalServerError, err)
 		}
 	}
 
-	return ctx.String(http.StatusOK, "Email verified")
+	return ctx.JSON(http.StatusOK, model.NewResponse(response, nil))
 }

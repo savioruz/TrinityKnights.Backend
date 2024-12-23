@@ -7,8 +7,11 @@ clean:
 swag:
 	swag init --parseDependency --parseInternal --parseDepth=2 -g ./cmd/app/main.go
 
+mockgen:
+	sh ./bin/generate-mock.sh
+
 critic:
-	gocritic check -enableAll ./internal/...
+	gocritic check -enableAll ./internal/domain/... ./internal/repository/... ./internal/service/... ./internal/delivery/http/... ./internal/builder/...
 
 security:
 	gosec ./...
