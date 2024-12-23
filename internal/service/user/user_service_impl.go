@@ -71,12 +71,13 @@ func (s *UserServiceImpl) Register(ctx context.Context, request *model.RegisterR
 	err = s.UserRepository.GetFirst(tx, first)
 
 	var role string
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		role = "admin"
-	} else if err != nil {
+	case err != nil:
 		s.Log.Errorf("failed to get first user: %v", err)
 		return nil, domainErrors.ErrInternalServer
-	} else {
+	default:
 		role = "buyer"
 	}
 
