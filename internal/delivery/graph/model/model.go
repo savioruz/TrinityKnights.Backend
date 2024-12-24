@@ -26,6 +26,9 @@ type EventsResponse struct {
 	Error  *Error                 `json:"error,omitempty"`
 }
 
+type Mutation struct {
+}
+
 type PageMetadata struct {
 	Page       int `json:"page"`
 	Size       int `json:"size"`

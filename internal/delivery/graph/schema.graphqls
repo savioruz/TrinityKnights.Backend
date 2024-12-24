@@ -1,5 +1,6 @@
 directive @auth on FIELD_DEFINITION
 directive @public on FIELD_DEFINITION
+directive @admin on FIELD_DEFINITION
 
 # Define custom scalar types if needed
 scalar DateTime
@@ -164,59 +165,59 @@ type Query {
   profile: UserResponse! @auth
 
   # Venue queries
-  # venue(id: Int!): VenueResponse! @auth
-  # venues(page: Int = 1, size: Int = 10, sort: String, order: String): VenuesResponse! @auth
-  # searchVenues(
-  #   name: String
-  #   address: String
-  #   capacity: Int
-  #   city: String
-  #   state: String
-  #   zip: String
-  #   page: Int = 1
-  #   size: Int = 10
-  #   sort: String
-  #   order: String
-  # ): VenuesResponse! @auth
+  venue(id: Int!): VenueResponse! @admin  
+  venues(page: Int = 1, size: Int = 10, sort: String, order: String): VenuesResponse! @admin
+  searchVenues(
+    name: String
+    address: String
+    capacity: Int
+    city: String
+    state: String
+    zip: String
+    page: Int = 1
+    size: Int = 10
+    sort: String
+    order: String
+  ): VenuesResponse! @admin
 
   # Payment queries
   payment(id: Int!): PaymentResponse! @auth
-  # payments(page: Int = 1, size: Int = 10, sort: String, order: String): PaymentsResponse! @auth
-  # searchPayments(
-  #   id: Int
-  #   orderId: Int
-  #   amount: Float
-  #   status: String
-  #   page: Int = 1
-  #   size: Int = 10
-  #   sort: String
-  #   order: String
-  # ): PaymentsResponse! @auth
+  payments(page: Int = 1, size: Int = 10, sort: String, order: String): PaymentsResponse! @admin
+  searchPayments(
+    id: Int
+    orderId: Int
+    amount: Float
+    status: String
+    page: Int = 1
+    size: Int = 10
+    sort: String
+    order: String
+  ): PaymentsResponse! @admin
 }
 
-# type Mutation {
-#   # All mutations require authentication
-#   createEvent(
-#     name: String!
-#     description: String!
-#     date: String!
-#     time: String!
-#     venueId: Int!
-#   ): EventResponse! @auth
-#   updateEvent(id: Int!, input: UpdateEventInput!): EventResponse! @auth
+type Mutation {
+  # All mutations require authentication
+  createEvent(
+    name: String!
+    description: String!
+    date: String!
+    time: String!
+    venueId: Int!
+  ): EventResponse! @auth
+  updateEvent(id: Int!, input: UpdateEventInput!): EventResponse! @auth
   
-#   # Venue mutations
-#   createVenue(
-#     name: String!
-#     address: String!
-#     capacity: Int!
-#     city: String!
-#     state: String!
-#     zip: String!
-#   ): VenueResponse! @auth
-#   updateVenue(id: Int!, input: UpdateVenueInput!): VenueResponse! @auth
+  # Venue mutations
+  createVenue(
+    name: String!
+    address: String!
+    capacity: Int!
+    city: String!
+    state: String!
+    zip: String!
+  ): VenueResponse! @auth
+  updateVenue(id: Int!, input: UpdateVenueInput!): VenueResponse! @auth
 
-#   # Ticket mutations
-#   createTicket(input: CreateTicketInput!): [TicketResponse!]! @auth
-#   updateTicket(id: String!, input: UpdateTicketInput!): TicketResponse! @auth
-# }
+  # Ticket mutations
+  createTicket(input: CreateTicketInput!): [TicketResponse!]! @auth
+  updateTicket(id: String!, input: UpdateTicketInput!): TicketResponse! @auth
+}
