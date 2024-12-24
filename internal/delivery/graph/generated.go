@@ -42,12 +42,14 @@ type Config struct {
 
 type ResolverRoot interface {
 	EventResponse() EventResponseResolver
+	Mutation() MutationResolver
 	Query() QueryResolver
 	UserResponse() UserResponseResolver
 	VenueResponse() VenueResponseResolver
 }
 
 type DirectiveRoot struct {
+	Admin  func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 	Auth   func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 	Public func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
@@ -74,6 +76,15 @@ type ComplexityRoot struct {
 		Paging func(childComplexity int) int
 	}
 
+	Mutation struct {
+		CreateEvent  func(childComplexity int, name string, description string, date string, time string, venueID int) int
+		CreateTicket func(childComplexity int, input graphmodel.CreateTicketInput) int
+		CreateVenue  func(childComplexity int, name string, address string, capacity int, city string, state string, zip string) int
+		UpdateEvent  func(childComplexity int, id int, input graphmodel.UpdateEventInput) int
+		UpdateTicket func(childComplexity int, id string, input graphmodel.UpdateTicketInput) int
+		UpdateVenue  func(childComplexity int, id int, input graphmodel.UpdateVenueInput) int
+	}
+
 	PageMetadata struct {
 		Page       func(childComplexity int) int
 		Size       func(childComplexity int) int
@@ -97,14 +108,19 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Event         func(childComplexity int, id int) int
-		Events        func(childComplexity int, page *int, size *int, sort *string, order *string) int
-		Payment       func(childComplexity int, id int) int
-		Profile       func(childComplexity int) int
-		SearchEvents  func(childComplexity int, name *string, description *string, date *string, time *string, venueID *int, page *int, size *int, sort *string, order *string) int
-		SearchTickets func(childComplexity int, id *string, eventID *int, orderID *int, price *float64, typeArg *string, seatNumber *string, page *int, size *int, sort *string, order *string) int
-		Ticket        func(childComplexity int, id string) int
-		Tickets       func(childComplexity int, page *int, size *int, sort *string, order *string) int
+		Event          func(childComplexity int, id int) int
+		Events         func(childComplexity int, page *int, size *int, sort *string, order *string) int
+		Payment        func(childComplexity int, id int) int
+		Payments       func(childComplexity int, page *int, size *int, sort *string, order *string) int
+		Profile        func(childComplexity int) int
+		SearchEvents   func(childComplexity int, name *string, description *string, date *string, time *string, venueID *int, page *int, size *int, sort *string, order *string) int
+		SearchPayments func(childComplexity int, id *int, orderID *int, amount *float64, status *string, page *int, size *int, sort *string, order *string) int
+		SearchTickets  func(childComplexity int, id *string, eventID *int, orderID *int, price *float64, typeArg *string, seatNumber *string, page *int, size *int, sort *string, order *string) int
+		SearchVenues   func(childComplexity int, name *string, address *string, capacity *int, city *string, state *string, zip *string, page *int, size *int, sort *string, order *string) int
+		Ticket         func(childComplexity int, id string) int
+		Tickets        func(childComplexity int, page *int, size *int, sort *string, order *string) int
+		Venue          func(childComplexity int, id int) int
+		Venues         func(childComplexity int, page *int, size *int, sort *string, order *string) int
 	}
 
 	Response struct {
@@ -163,6 +179,14 @@ type EventResponseResolver interface {
 	VenueID(ctx context.Context, obj *model.EventResponse) (int, error)
 	Venue(ctx context.Context, obj *model.EventResponse) (*model.VenueResponse, error)
 }
+type MutationResolver interface {
+	CreateEvent(ctx context.Context, name string, description string, date string, time string, venueID int) (*model.EventResponse, error)
+	UpdateEvent(ctx context.Context, id int, input graphmodel.UpdateEventInput) (*model.EventResponse, error)
+	CreateVenue(ctx context.Context, name string, address string, capacity int, city string, state string, zip string) (*model.VenueResponse, error)
+	UpdateVenue(ctx context.Context, id int, input graphmodel.UpdateVenueInput) (*model.VenueResponse, error)
+	CreateTicket(ctx context.Context, input graphmodel.CreateTicketInput) ([]*graphmodel.TicketResponse, error)
+	UpdateTicket(ctx context.Context, id string, input graphmodel.UpdateTicketInput) (*graphmodel.TicketResponse, error)
+}
 type QueryResolver interface {
 	Event(ctx context.Context, id int) (*model.EventResponse, error)
 	Events(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.EventsResponse, error)
@@ -171,7 +195,12 @@ type QueryResolver interface {
 	Tickets(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.TicketsResponse, error)
 	SearchTickets(ctx context.Context, id *string, eventID *int, orderID *int, price *float64, typeArg *string, seatNumber *string, page *int, size *int, sort *string, order *string) (*graphmodel.TicketsResponse, error)
 	Profile(ctx context.Context) (*model.UserResponse, error)
+	Venue(ctx context.Context, id int) (*model.VenueResponse, error)
+	Venues(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.VenuesResponse, error)
+	SearchVenues(ctx context.Context, name *string, address *string, capacity *int, city *string, state *string, zip *string, page *int, size *int, sort *string, order *string) (*graphmodel.VenuesResponse, error)
 	Payment(ctx context.Context, id int) (*graphmodel.PaymentResponse, error)
+	Payments(ctx context.Context, page *int, size *int, sort *string, order *string) (*graphmodel.PaymentsResponse, error)
+	SearchPayments(ctx context.Context, id *int, orderID *int, amount *float64, status *string, page *int, size *int, sort *string, order *string) (*graphmodel.PaymentsResponse, error)
 }
 type UserResponseResolver interface {
 	CreatedAt(ctx context.Context, obj *model.UserResponse) (*time.Time, error)
@@ -283,6 +312,78 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EventsResponse.Paging(childComplexity), true
+
+	case "Mutation.createEvent":
+		if e.complexity.Mutation.CreateEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateEvent(childComplexity, args["name"].(string), args["description"].(string), args["date"].(string), args["time"].(string), args["venueId"].(int)), true
+
+	case "Mutation.createTicket":
+		if e.complexity.Mutation.CreateTicket == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTicket_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTicket(childComplexity, args["input"].(graphmodel.CreateTicketInput)), true
+
+	case "Mutation.createVenue":
+		if e.complexity.Mutation.CreateVenue == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createVenue_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateVenue(childComplexity, args["name"].(string), args["address"].(string), args["capacity"].(int), args["city"].(string), args["state"].(string), args["zip"].(string)), true
+
+	case "Mutation.updateEvent":
+		if e.complexity.Mutation.UpdateEvent == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateEvent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateEvent(childComplexity, args["id"].(int), args["input"].(graphmodel.UpdateEventInput)), true
+
+	case "Mutation.updateTicket":
+		if e.complexity.Mutation.UpdateTicket == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTicket_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTicket(childComplexity, args["id"].(string), args["input"].(graphmodel.UpdateTicketInput)), true
+
+	case "Mutation.updateVenue":
+		if e.complexity.Mutation.UpdateVenue == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateVenue_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateVenue(childComplexity, args["id"].(int), args["input"].(graphmodel.UpdateVenueInput)), true
 
 	case "PageMetadata.page":
 		if e.complexity.PageMetadata.Page == nil {
@@ -411,6 +512,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Payment(childComplexity, args["id"].(int)), true
 
+	case "Query.payments":
+		if e.complexity.Query.Payments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_payments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Payments(childComplexity, args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
+
 	case "Query.profile":
 		if e.complexity.Query.Profile == nil {
 			break
@@ -430,6 +543,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SearchEvents(childComplexity, args["name"].(*string), args["description"].(*string), args["date"].(*string), args["time"].(*string), args["venueId"].(*int), args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
 
+	case "Query.searchPayments":
+		if e.complexity.Query.SearchPayments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchPayments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchPayments(childComplexity, args["id"].(*int), args["orderId"].(*int), args["amount"].(*float64), args["status"].(*string), args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
+
 	case "Query.searchTickets":
 		if e.complexity.Query.SearchTickets == nil {
 			break
@@ -441,6 +566,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SearchTickets(childComplexity, args["id"].(*string), args["eventId"].(*int), args["orderId"].(*int), args["price"].(*float64), args["type"].(*string), args["seatNumber"].(*string), args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
+
+	case "Query.searchVenues":
+		if e.complexity.Query.SearchVenues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchVenues_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchVenues(childComplexity, args["name"].(*string), args["address"].(*string), args["capacity"].(*int), args["city"].(*string), args["state"].(*string), args["zip"].(*string), args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
 
 	case "Query.ticket":
 		if e.complexity.Query.Ticket == nil {
@@ -465,6 +602,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Tickets(childComplexity, args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
+
+	case "Query.venue":
+		if e.complexity.Query.Venue == nil {
+			break
+		}
+
+		args, err := ec.field_Query_venue_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Venue(childComplexity, args["id"].(int)), true
+
+	case "Query.venues":
+		if e.complexity.Query.Venues == nil {
+			break
+		}
+
+		args, err := ec.field_Query_venues_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Venues(childComplexity, args["page"].(*int), args["size"].(*int), args["sort"].(*string), args["order"].(*string)), true
 
 	case "Response.error":
 		if e.complexity.Response.Error == nil {
@@ -723,6 +884,21 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 
 			return &response
 		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+			data := ec._Mutation(ctx, opCtx.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
 
 	default:
 		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
@@ -789,6 +965,360 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_createEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_createEvent_argsName(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := ec.field_Mutation_createEvent_argsDescription(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["description"] = arg1
+	arg2, err := ec.field_Mutation_createEvent_argsDate(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["date"] = arg2
+	arg3, err := ec.field_Mutation_createEvent_argsTime(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["time"] = arg3
+	arg4, err := ec.field_Mutation_createEvent_argsVenueID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["venueId"] = arg4
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_createEvent_argsName(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["name"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createEvent_argsDescription(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+	if tmp, ok := rawArgs["description"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createEvent_argsDate(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+	if tmp, ok := rawArgs["date"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createEvent_argsTime(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
+	if tmp, ok := rawArgs["time"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createEvent_argsVenueID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("venueId"))
+	if tmp, ok := rawArgs["venueId"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createTicket_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_createTicket_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_createTicket_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (graphmodel.CreateTicketInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNCreateTicketInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCreateTicketInput(ctx, tmp)
+	}
+
+	var zeroVal graphmodel.CreateTicketInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createVenue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_createVenue_argsName(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := ec.field_Mutation_createVenue_argsAddress(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["address"] = arg1
+	arg2, err := ec.field_Mutation_createVenue_argsCapacity(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["capacity"] = arg2
+	arg3, err := ec.field_Mutation_createVenue_argsCity(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["city"] = arg3
+	arg4, err := ec.field_Mutation_createVenue_argsState(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["state"] = arg4
+	arg5, err := ec.field_Mutation_createVenue_argsZip(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["zip"] = arg5
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_createVenue_argsName(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["name"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createVenue_argsAddress(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+	if tmp, ok := rawArgs["address"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createVenue_argsCapacity(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
+	if tmp, ok := rawArgs["capacity"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createVenue_argsCity(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+	if tmp, ok := rawArgs["city"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createVenue_argsState(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+	if tmp, ok := rawArgs["state"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_createVenue_argsZip(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("zip"))
+	if tmp, ok := rawArgs["zip"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_updateEvent_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := ec.field_Mutation_updateEvent_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateEvent_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateEvent_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (graphmodel.UpdateEventInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNUpdateEventInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐUpdateEventInput(ctx, tmp)
+	}
+
+	var zeroVal graphmodel.UpdateEventInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTicket_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_updateTicket_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := ec.field_Mutation_updateTicket_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateTicket_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTicket_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (graphmodel.UpdateTicketInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNUpdateTicketInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐUpdateTicketInput(ctx, tmp)
+	}
+
+	var zeroVal graphmodel.UpdateTicketInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateVenue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Mutation_updateVenue_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := ec.field_Mutation_updateVenue_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_updateVenue_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_updateVenue_argsInput(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (graphmodel.UpdateVenueInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNUpdateVenueInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐUpdateVenueInput(ctx, tmp)
+	}
+
+	var zeroVal graphmodel.UpdateVenueInput
+	return zeroVal, nil
+}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -933,6 +1463,83 @@ func (ec *executionContext) field_Query_payment_argsID(
 	}
 
 	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_payments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_payments_argsPage(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["page"] = arg0
+	arg1, err := ec.field_Query_payments_argsSize(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["size"] = arg1
+	arg2, err := ec.field_Query_payments_argsSort(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["sort"] = arg2
+	arg3, err := ec.field_Query_payments_argsOrder(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["order"] = arg3
+	return args, nil
+}
+func (ec *executionContext) field_Query_payments_argsPage(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+	if tmp, ok := rawArgs["page"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_payments_argsSize(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+	if tmp, ok := rawArgs["size"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_payments_argsSort(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+	if tmp, ok := rawArgs["sort"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_payments_argsOrder(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+	if tmp, ok := rawArgs["order"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
 	return zeroVal, nil
 }
 
@@ -1091,6 +1698,155 @@ func (ec *executionContext) field_Query_searchEvents_argsSort(
 }
 
 func (ec *executionContext) field_Query_searchEvents_argsOrder(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+	if tmp, ok := rawArgs["order"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_searchPayments_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := ec.field_Query_searchPayments_argsOrderID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["orderId"] = arg1
+	arg2, err := ec.field_Query_searchPayments_argsAmount(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["amount"] = arg2
+	arg3, err := ec.field_Query_searchPayments_argsStatus(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["status"] = arg3
+	arg4, err := ec.field_Query_searchPayments_argsPage(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["page"] = arg4
+	arg5, err := ec.field_Query_searchPayments_argsSize(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["size"] = arg5
+	arg6, err := ec.field_Query_searchPayments_argsSort(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["sort"] = arg6
+	arg7, err := ec.field_Query_searchPayments_argsOrder(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["order"] = arg7
+	return args, nil
+}
+func (ec *executionContext) field_Query_searchPayments_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsOrderID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+	if tmp, ok := rawArgs["orderId"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsAmount(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*float64, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
+	if tmp, ok := rawArgs["amount"]; ok {
+		return ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+	}
+
+	var zeroVal *float64
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsStatus(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+	if tmp, ok := rawArgs["status"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsPage(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+	if tmp, ok := rawArgs["page"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsSize(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+	if tmp, ok := rawArgs["size"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsSort(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+	if tmp, ok := rawArgs["sort"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchPayments_argsOrder(
 	ctx context.Context,
 	rawArgs map[string]interface{},
 ) (*string, error) {
@@ -1288,6 +2044,191 @@ func (ec *executionContext) field_Query_searchTickets_argsOrder(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Query_searchVenues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_searchVenues_argsName(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["name"] = arg0
+	arg1, err := ec.field_Query_searchVenues_argsAddress(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["address"] = arg1
+	arg2, err := ec.field_Query_searchVenues_argsCapacity(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["capacity"] = arg2
+	arg3, err := ec.field_Query_searchVenues_argsCity(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["city"] = arg3
+	arg4, err := ec.field_Query_searchVenues_argsState(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["state"] = arg4
+	arg5, err := ec.field_Query_searchVenues_argsZip(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["zip"] = arg5
+	arg6, err := ec.field_Query_searchVenues_argsPage(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["page"] = arg6
+	arg7, err := ec.field_Query_searchVenues_argsSize(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["size"] = arg7
+	arg8, err := ec.field_Query_searchVenues_argsSort(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["sort"] = arg8
+	arg9, err := ec.field_Query_searchVenues_argsOrder(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["order"] = arg9
+	return args, nil
+}
+func (ec *executionContext) field_Query_searchVenues_argsName(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+	if tmp, ok := rawArgs["name"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsAddress(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+	if tmp, ok := rawArgs["address"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsCapacity(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
+	if tmp, ok := rawArgs["capacity"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsCity(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+	if tmp, ok := rawArgs["city"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsState(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+	if tmp, ok := rawArgs["state"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsZip(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("zip"))
+	if tmp, ok := rawArgs["zip"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsPage(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+	if tmp, ok := rawArgs["page"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsSize(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+	if tmp, ok := rawArgs["size"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsSort(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+	if tmp, ok := rawArgs["sort"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_searchVenues_argsOrder(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+	if tmp, ok := rawArgs["order"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Query_ticket_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1376,6 +2317,106 @@ func (ec *executionContext) field_Query_tickets_argsSort(
 }
 
 func (ec *executionContext) field_Query_tickets_argsOrder(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+	if tmp, ok := rawArgs["order"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_venue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_venue_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_venue_argsID(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_venues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	arg0, err := ec.field_Query_venues_argsPage(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["page"] = arg0
+	arg1, err := ec.field_Query_venues_argsSize(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["size"] = arg1
+	arg2, err := ec.field_Query_venues_argsSort(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["sort"] = arg2
+	arg3, err := ec.field_Query_venues_argsOrder(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["order"] = arg3
+	return args, nil
+}
+func (ec *executionContext) field_Query_venues_argsPage(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+	if tmp, ok := rawArgs["page"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_venues_argsSize(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("size"))
+	if tmp, ok := rawArgs["size"]; ok {
+		return ec.unmarshalOInt2ᚖint(ctx, tmp)
+	}
+
+	var zeroVal *int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_venues_argsSort(
+	ctx context.Context,
+	rawArgs map[string]interface{},
+) (*string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+	if tmp, ok := rawArgs["sort"]; ok {
+		return ec.unmarshalOString2ᚖstring(ctx, tmp)
+	}
+
+	var zeroVal *string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_venues_argsOrder(
 	ctx context.Context,
 	rawArgs map[string]interface{},
 ) (*string, error) {
@@ -2002,6 +3043,568 @@ func (ec *executionContext) fieldContext_EventsResponse_error(_ context.Context,
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Error", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createEvent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateEvent(rctx, fc.Args["name"].(string), fc.Args["description"].(string), fc.Args["date"].(string), fc.Args["time"].(string), fc.Args["venueId"].(int))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal *model.EventResponse
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EventResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/domain/model.EventResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EventResponse)
+	fc.Result = res
+	return ec.marshalNEventResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐEventResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createEvent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EventResponse_id(ctx, field)
+			case "name":
+				return ec.fieldContext_EventResponse_name(ctx, field)
+			case "description":
+				return ec.fieldContext_EventResponse_description(ctx, field)
+			case "date":
+				return ec.fieldContext_EventResponse_date(ctx, field)
+			case "time":
+				return ec.fieldContext_EventResponse_time(ctx, field)
+			case "venueId":
+				return ec.fieldContext_EventResponse_venueId(ctx, field)
+			case "venue":
+				return ec.fieldContext_EventResponse_venue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EventResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createEvent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateEvent(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateEvent(rctx, fc.Args["id"].(int), fc.Args["input"].(graphmodel.UpdateEventInput))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal *model.EventResponse
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.EventResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/domain/model.EventResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EventResponse)
+	fc.Result = res
+	return ec.marshalNEventResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐEventResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateEvent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_EventResponse_id(ctx, field)
+			case "name":
+				return ec.fieldContext_EventResponse_name(ctx, field)
+			case "description":
+				return ec.fieldContext_EventResponse_description(ctx, field)
+			case "date":
+				return ec.fieldContext_EventResponse_date(ctx, field)
+			case "time":
+				return ec.fieldContext_EventResponse_time(ctx, field)
+			case "venueId":
+				return ec.fieldContext_EventResponse_venueId(ctx, field)
+			case "venue":
+				return ec.fieldContext_EventResponse_venue(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EventResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateEvent_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createVenue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createVenue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateVenue(rctx, fc.Args["name"].(string), fc.Args["address"].(string), fc.Args["capacity"].(int), fc.Args["city"].(string), fc.Args["state"].(string), fc.Args["zip"].(string))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal *model.VenueResponse
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.VenueResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/domain/model.VenueResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.VenueResponse)
+	fc.Result = res
+	return ec.marshalNVenueResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐVenueResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createVenue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_VenueResponse_id(ctx, field)
+			case "name":
+				return ec.fieldContext_VenueResponse_name(ctx, field)
+			case "address":
+				return ec.fieldContext_VenueResponse_address(ctx, field)
+			case "capacity":
+				return ec.fieldContext_VenueResponse_capacity(ctx, field)
+			case "city":
+				return ec.fieldContext_VenueResponse_city(ctx, field)
+			case "state":
+				return ec.fieldContext_VenueResponse_state(ctx, field)
+			case "zip":
+				return ec.fieldContext_VenueResponse_zip(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VenueResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createVenue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateVenue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateVenue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateVenue(rctx, fc.Args["id"].(int), fc.Args["input"].(graphmodel.UpdateVenueInput))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal *model.VenueResponse
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.VenueResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/domain/model.VenueResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.VenueResponse)
+	fc.Result = res
+	return ec.marshalNVenueResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐVenueResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateVenue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_VenueResponse_id(ctx, field)
+			case "name":
+				return ec.fieldContext_VenueResponse_name(ctx, field)
+			case "address":
+				return ec.fieldContext_VenueResponse_address(ctx, field)
+			case "capacity":
+				return ec.fieldContext_VenueResponse_capacity(ctx, field)
+			case "city":
+				return ec.fieldContext_VenueResponse_city(ctx, field)
+			case "state":
+				return ec.fieldContext_VenueResponse_state(ctx, field)
+			case "zip":
+				return ec.fieldContext_VenueResponse_zip(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VenueResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateVenue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createTicket(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createTicket(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTicket(rctx, fc.Args["input"].(graphmodel.CreateTicketInput))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal []*graphmodel.TicketResponse
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*graphmodel.TicketResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/TrinityKnights/Backend/internal/delivery/graph/model.TicketResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*graphmodel.TicketResponse)
+	fc.Result = res
+	return ec.marshalNTicketResponse2ᚕᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐTicketResponseᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createTicket(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_TicketResponse_id(ctx, field)
+			case "eventId":
+				return ec.fieldContext_TicketResponse_eventId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_TicketResponse_orderId(ctx, field)
+			case "price":
+				return ec.fieldContext_TicketResponse_price(ctx, field)
+			case "type":
+				return ec.fieldContext_TicketResponse_type(ctx, field)
+			case "seatNumber":
+				return ec.fieldContext_TicketResponse_seatNumber(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_TicketResponse_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_TicketResponse_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TicketResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createTicket_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateTicket(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateTicket(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTicket(rctx, fc.Args["id"].(string), fc.Args["input"].(graphmodel.UpdateTicketInput))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal *graphmodel.TicketResponse
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*graphmodel.TicketResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/delivery/graph/model.TicketResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*graphmodel.TicketResponse)
+	fc.Result = res
+	return ec.marshalNTicketResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐTicketResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateTicket(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_TicketResponse_id(ctx, field)
+			case "eventId":
+				return ec.fieldContext_TicketResponse_eventId(ctx, field)
+			case "orderId":
+				return ec.fieldContext_TicketResponse_orderId(ctx, field)
+			case "price":
+				return ec.fieldContext_TicketResponse_price(ctx, field)
+			case "type":
+				return ec.fieldContext_TicketResponse_type(ctx, field)
+			case "seatNumber":
+				return ec.fieldContext_TicketResponse_seatNumber(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_TicketResponse_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_TicketResponse_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TicketResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateTicket_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -3206,6 +4809,269 @@ func (ec *executionContext) fieldContext_Query_profile(_ context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_venue(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_venue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Venue(rctx, fc.Args["id"].(int))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Admin == nil {
+				var zeroVal *model.VenueResponse
+				return zeroVal, errors.New("directive admin is not implemented")
+			}
+			return ec.directives.Admin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.VenueResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/domain/model.VenueResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.VenueResponse)
+	fc.Result = res
+	return ec.marshalNVenueResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐVenueResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_venue(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_VenueResponse_id(ctx, field)
+			case "name":
+				return ec.fieldContext_VenueResponse_name(ctx, field)
+			case "address":
+				return ec.fieldContext_VenueResponse_address(ctx, field)
+			case "capacity":
+				return ec.fieldContext_VenueResponse_capacity(ctx, field)
+			case "city":
+				return ec.fieldContext_VenueResponse_city(ctx, field)
+			case "state":
+				return ec.fieldContext_VenueResponse_state(ctx, field)
+			case "zip":
+				return ec.fieldContext_VenueResponse_zip(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VenueResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_venue_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_venues(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_venues(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Venues(rctx, fc.Args["page"].(*int), fc.Args["size"].(*int), fc.Args["sort"].(*string), fc.Args["order"].(*string))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Admin == nil {
+				var zeroVal *graphmodel.VenuesResponse
+				return zeroVal, errors.New("directive admin is not implemented")
+			}
+			return ec.directives.Admin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*graphmodel.VenuesResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/delivery/graph/model.VenuesResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*graphmodel.VenuesResponse)
+	fc.Result = res
+	return ec.marshalNVenuesResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐVenuesResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_venues(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_VenuesResponse_data(ctx, field)
+			case "paging":
+				return ec.fieldContext_VenuesResponse_paging(ctx, field)
+			case "error":
+				return ec.fieldContext_VenuesResponse_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VenuesResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_venues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_searchVenues(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchVenues(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().SearchVenues(rctx, fc.Args["name"].(*string), fc.Args["address"].(*string), fc.Args["capacity"].(*int), fc.Args["city"].(*string), fc.Args["state"].(*string), fc.Args["zip"].(*string), fc.Args["page"].(*int), fc.Args["size"].(*int), fc.Args["sort"].(*string), fc.Args["order"].(*string))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Admin == nil {
+				var zeroVal *graphmodel.VenuesResponse
+				return zeroVal, errors.New("directive admin is not implemented")
+			}
+			return ec.directives.Admin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*graphmodel.VenuesResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/delivery/graph/model.VenuesResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*graphmodel.VenuesResponse)
+	fc.Result = res
+	return ec.marshalNVenuesResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐVenuesResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_searchVenues(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_VenuesResponse_data(ctx, field)
+			case "paging":
+				return ec.fieldContext_VenuesResponse_paging(ctx, field)
+			case "error":
+				return ec.fieldContext_VenuesResponse_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VenuesResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchVenues_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_payment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_payment(ctx, field)
 	if err != nil {
@@ -3291,6 +5157,176 @@ func (ec *executionContext) fieldContext_Query_payment(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_payment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_payments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_payments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().Payments(rctx, fc.Args["page"].(*int), fc.Args["size"].(*int), fc.Args["sort"].(*string), fc.Args["order"].(*string))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Admin == nil {
+				var zeroVal *graphmodel.PaymentsResponse
+				return zeroVal, errors.New("directive admin is not implemented")
+			}
+			return ec.directives.Admin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*graphmodel.PaymentsResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/delivery/graph/model.PaymentsResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*graphmodel.PaymentsResponse)
+	fc.Result = res
+	return ec.marshalNPaymentsResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐPaymentsResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_payments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_PaymentsResponse_data(ctx, field)
+			case "paging":
+				return ec.fieldContext_PaymentsResponse_paging(ctx, field)
+			case "error":
+				return ec.fieldContext_PaymentsResponse_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaymentsResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_payments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_searchPayments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_searchPayments(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().SearchPayments(rctx, fc.Args["id"].(*int), fc.Args["orderId"].(*int), fc.Args["amount"].(*float64), fc.Args["status"].(*string), fc.Args["page"].(*int), fc.Args["size"].(*int), fc.Args["sort"].(*string), fc.Args["order"].(*string))
+		}
+
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Admin == nil {
+				var zeroVal *graphmodel.PaymentsResponse
+				return zeroVal, errors.New("directive admin is not implemented")
+			}
+			return ec.directives.Admin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*graphmodel.PaymentsResponse); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/TrinityKnights/Backend/internal/delivery/graph/model.PaymentsResponse`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*graphmodel.PaymentsResponse)
+	fc.Result = res
+	return ec.marshalNPaymentsResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐPaymentsResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_searchPayments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_PaymentsResponse_data(ctx, field)
+			case "paging":
+				return ec.fieldContext_PaymentsResponse_paging(ctx, field)
+			case "error":
+				return ec.fieldContext_PaymentsResponse_error(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaymentsResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_searchPayments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7098,6 +9134,90 @@ func (ec *executionContext) _EventsResponse(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var mutationImplementors = []string{"Mutation"}
+
+func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Mutation",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
+			Object: field.Name,
+			Field:  field,
+		})
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createEvent":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createEvent(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateEvent":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateEvent(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createVenue":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createVenue(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateVenue":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateVenue(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createTicket":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createTicket(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateTicket":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateTicket(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var pageMetadataImplementors = []string{"PageMetadata"}
 
 func (ec *executionContext) _PageMetadata(ctx context.Context, sel ast.SelectionSet, obj *graphmodel.PageMetadata) graphql.Marshaler {
@@ -7426,6 +9546,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "venue":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_venue(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "venues":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_venues(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "searchVenues":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchVenues(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "payment":
 			field := field
 
@@ -7436,6 +9622,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_payment(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "payments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_payments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "searchPayments":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchPayments(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -8228,6 +10458,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateTicketInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐCreateTicketInput(ctx context.Context, v interface{}) (graphmodel.CreateTicketInput, error) {
+	res, err := ec.unmarshalInputCreateTicketInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNDateTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8330,6 +10565,20 @@ func (ec *executionContext) marshalNPaymentResponse2ᚖgithubᚗcomᚋTrinityKni
 	return ec._PaymentResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPaymentsResponse2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐPaymentsResponse(ctx context.Context, sel ast.SelectionSet, v graphmodel.PaymentsResponse) graphql.Marshaler {
+	return ec._PaymentsResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPaymentsResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐPaymentsResponse(ctx context.Context, sel ast.SelectionSet, v *graphmodel.PaymentsResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PaymentsResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8347,6 +10596,50 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 
 func (ec *executionContext) marshalNTicketResponse2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐTicketResponse(ctx context.Context, sel ast.SelectionSet, v graphmodel.TicketResponse) graphql.Marshaler {
 	return ec._TicketResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTicketResponse2ᚕᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐTicketResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*graphmodel.TicketResponse) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTicketResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐTicketResponse(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNTicketResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐTicketResponse(ctx context.Context, sel ast.SelectionSet, v *graphmodel.TicketResponse) graphql.Marshaler {
@@ -8409,6 +10702,21 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
+func (ec *executionContext) unmarshalNUpdateEventInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐUpdateEventInput(ctx context.Context, v interface{}) (graphmodel.UpdateEventInput, error) {
+	res, err := ec.unmarshalInputUpdateEventInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateTicketInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐUpdateTicketInput(ctx context.Context, v interface{}) (graphmodel.UpdateTicketInput, error) {
+	res, err := ec.unmarshalInputUpdateTicketInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateVenueInput2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐUpdateVenueInput(ctx context.Context, v interface{}) (graphmodel.UpdateVenueInput, error) {
+	res, err := ec.unmarshalInputUpdateVenueInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNUserResponse2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐUserResponse(ctx context.Context, sel ast.SelectionSet, v model.UserResponse) graphql.Marshaler {
 	return ec._UserResponse(ctx, sel, &v)
 }
@@ -8423,6 +10731,10 @@ func (ec *executionContext) marshalNUserResponse2ᚖgithubᚗcomᚋTrinityKnight
 	return ec._UserResponse(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNVenueResponse2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐVenueResponse(ctx context.Context, sel ast.SelectionSet, v model.VenueResponse) graphql.Marshaler {
+	return ec._VenueResponse(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNVenueResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdomainᚋmodelᚐVenueResponse(ctx context.Context, sel ast.SelectionSet, v *model.VenueResponse) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -8431,6 +10743,20 @@ func (ec *executionContext) marshalNVenueResponse2ᚖgithubᚗcomᚋTrinityKnigh
 		return graphql.Null
 	}
 	return ec._VenueResponse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNVenuesResponse2githubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐVenuesResponse(ctx context.Context, sel ast.SelectionSet, v graphmodel.VenuesResponse) graphql.Marshaler {
+	return ec._VenuesResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNVenuesResponse2ᚖgithubᚗcomᚋTrinityKnightsᚋBackendᚋinternalᚋdeliveryᚋgraphᚋmodelᚐVenuesResponse(ctx context.Context, sel ast.SelectionSet, v *graphmodel.VenuesResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._VenuesResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
